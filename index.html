@@ -201,6 +201,66 @@ details.mission[open] > summary::after { transform: rotate(180deg); }
 .subhead { font-family: var(--f-display); font-weight: 800; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
 footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
 
+/* table of contents */
+.toc { display: flex; flex-wrap: wrap; gap: 6px; }
+.toc a { font: 500 13px var(--f-body); color: var(--ink); text-decoration: none; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; }
+.toc a:hover { border-color: var(--accent); }
+.toc a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* buttons for the interactive bits */
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.pbtn { font: 600 14px var(--f-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; cursor: pointer; }
+.pbtn[aria-pressed="true"] { background: var(--accent); color: #1b1600; border-color: transparent; }
+.pbtn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.fig-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.fig-tools span { font-size: 13px; color: #3c4743; }
+
+/* energy flow animation */
+.flowline { opacity: 0; fill: none; stroke-linecap: round; }
+.energy-on .flowline { opacity: 1; animation: flow 0.9s linear infinite; }
+.spin { transform-box: fill-box; transform-origin: center; }
+.energy-on .spin { animation: spin 0.8s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -32; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* demos */
+.demos { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.demo { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.demo h3 { font-size: 20px; }
+.demo .stage { background: var(--paper); border-radius: 12px; overflow: hidden; }
+.demo .stage svg { display: block; width: 100%; height: auto; }
+.demo .readout { font-size: 15px; min-height: 3em; }
+.demo label.range { display: grid; gap: 4px; font-size: 14px; color: var(--muted); }
+.demo input[type=range] { width: 100%; accent-color: var(--accent); }
+
+/* multimeter */
+.meter { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
+.meter .stage { background: var(--paper); border-radius: 16px; padding: 8px; }
+.meter svg { display: block; width: 100%; height: auto; }
+#dial-ptr { transform-box: view-box; transform-origin: 150px 136px; transition: transform .5s ease; }
+#red-plug { transition: transform .5s ease; }
+.meter ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+.meter .note { font-size: 13px; color: var(--muted); }
+
+/* problems */
+.faq { display: grid; gap: 8px; }
+.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+.faq summary { cursor: pointer; font-family: var(--f-display); font-weight: 800; font-size: 17px; font-variation-settings: "wdth" 92; }
+.faq summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.faq details p { margin-top: 8px; font-size: 15px; }
+.checklist { background: var(--stop-soft); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; }
+.checklist .tick { background: var(--surface); }
+
+@media (max-width: 860px) {
+  .demos { grid-template-columns: 1fr; }
+  .meter { grid-template-columns: 1fr; }
+  .meter .stage { max-width: 340px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .energy-on .flowline, .energy-on .spin { animation: none; }
+  #dial-ptr, #red-plug { transition: none; }
+}
+
 /* where we are */
 .stages { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0; }
 .stages li { font: 500 13px var(--f-body); padding: 5px 11px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); }
@@ -278,7 +338,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
         Mergem în misiuni mici, de 15–20 de minute, cu desene. Nu trebuie să știi nimic dinainte.</p>
       <ol class="stages" aria-label="Unde suntem">
         <li class="ok">✓ Schița</li><li class="ok">✓ Planul</li><li class="ok">✓ Lista de piese</li><li class="ok">✓ Piese primite</li>
-        <li class="wait">Creierul: pe drum</li><li class="now">Acum: Misiunea 0</li><li>Corpul (2–6)</li><li>Creierul (7)</li><li>Cablarea (8–9)</li><li>Programul</li><li>Primul drum</li>
+        <li class="wait">Creierul: pe drum</li><li class="now">Acum: Misiunea 0</li><li>Corpul (2–6)</li><li>Creierul (7)</li><li>Cablarea (8–9)</li><li>Programul și primul drum (10)</li>
       </ol>
       <div class="progress" aria-live="polite">
         <div class="progress-row"><span>Piese găsite</span><span id="pcount">0 / 0</span></div>
@@ -315,6 +375,12 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     </div>
   </header>
 
+  <nav class="toc" aria-label="Cuprins">
+    <a href="#h-loop">Cum lucrăm</a><a href="#h-rules">Reguli</a><a href="#h-words">Cuvinte noi</a><a href="#h-map">Harta robotului</a>
+    <a href="#h-flow">Drumul energiei</a><a href="#h-demo">Cum virează și cum vede</a><a href="#h-parts">Piesele</a>
+    <a href="#h-res">Rezistențele</a><a href="#h-meter">Multimetrul</a><a href="#h-missions">Misiunile</a><a href="#h-faq">Când ceva nu merge</a>
+  </nav>
+
   <section aria-labelledby="h-loop">
     <div class="sec-head">
       <p class="eyebrow">Cum lucrăm</p>
@@ -325,7 +391,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       <li><b>Citești misiunea</b><span>Vezi de ce ai nevoie și ce trebuie să iasă la final.</span></li>
       <li><b>Faci pașii</b><span>Unul câte unul, bifezi pe măsură ce îi termini.</span></li>
       <li><b>Faci o poză</b><span>De sus, cu lumină bună, să se vadă piesele clar.</span></li>
-      <li><b>O trimiți în chat</b><span>O lipești direct în conversația din VS Code.</span></li>
+      <li><b>O trimiți în chat</b><span>O lipești în conversația cu asistentul (Claude). Dacă lucrați în doi, o vede și colegul.</span></li>
       <li><b>Eu verific</b><span>Îți spun dacă e bine sau ce corectăm, apoi deblocăm misiunea următoare.</span></li>
     </ol>
   </section>
@@ -370,6 +436,10 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       <div class="word"><dt>Tensiune, în volți (V)</dt><dd>Cât de tare „împinge” bateria curentul. Robotul nostru are în jur de 7,2 V, cât să nu fie periculos.</dd></div>
       <div class="word"><dt>Curent, în amperi (A)</dt><dd>Cât curent curge prin fir. Motoarele cer mult, creierul cere puțin.</dd></div>
       <div class="word"><dt>GND („masa”)</dt><dd>Minusul comun. Toate plăcile robotului au minusul legat împreună, altfel nu se înțeleg între ele.</dd></div>
+      <div class="word"><dt>Cositorire</dt><dd>Pui un strat subțire de fludor pe vârful letconului sau pe capătul firului, înainte de lipit. Apoi lipitura se face ușor.</dd></div>
+      <div class="word"><dt>Bornă</dt><dd>Căsuța albastră cu șurub de pe o placă. Bagi capătul firului și strângi șurubul: firul e legat, fără lipit.</dd></div>
+      <div class="word"><dt>Călut (jumper)</dt><dd>Căpăcel negru mic care leagă doi pini între ei. Îl scoți cu degetele când vrei să-i „dezlegi”.</dd></div>
+      <div class="word"><dt>Continuitate („bip”)</dt><dd>Modul multimetrului care face bip când între cele două sonde e un drum pentru curent: fir întreg, lipitură bună.</dd></div>
       <div class="word"><dt>Lipitură</dt><dd>Două fire „lipite” cu metal topit (fludor). Ține bine și trece curentul prin ea.</dd></div>
       <div class="word"><dt>Virare ca tancul</dt><dd>Roțile nu se întorc. Ca să vireze, robotul încetinește sau dă înapoi cu roțile de pe o parte. Se poate învârti chiar pe loc.</dd></div>
       <div class="word"><dt>Scurtcircuit</dt><dd>Când plusul atinge direct minusul. Firele se încing. De asta avem siguranța de 3 A.</dd></div>
@@ -456,7 +526,8 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
         Fiecare mușchi învârte cele două motoare de pe partea lui. Mușchiul din stânga face și 5 V pentru creier și ochi.
         Creierul doar dă comenzi.</p>
     </div>
-    <figure class="figure" style="margin:0">
+    <figure class="figure" id="flow-fig" style="margin:0">
+      <div class="fig-tools"><button type="button" class="pbtn" id="btn-power" aria-pressed="false">Întrerupătorul: O (oprit) · apasă ca să pornești</button><span>Vezi pe unde curge curentul și cum pornesc motoarele.</span></div>
       <div class="scroll">
         <svg viewBox="0 0 900 390" role="img" aria-label="Schema drumului energiei: baterii, siguranță, întrerupător, doi mușchi, patru motoare, creier și ochi">
           <defs>
@@ -478,17 +549,17 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
             <rect x="190" y="75" width="100" height="50" rx="10" fill="var(--o-white)" stroke="var(--o-ink)" stroke-width="2"/>
             <text x="240" y="96" font-size="15" font-weight="600">Siguranța</text><text x="240" y="115" font-size="12">3 A</text>
             <rect x="320" y="75" width="120" height="50" rx="10" fill="var(--o-white)" stroke="var(--o-ink)" stroke-width="2"/>
-            <text x="380" y="96" font-size="15" font-weight="600">Întrerupător</text><text x="380" y="115" font-size="12">I pornit · O oprit</text>
+            <text x="380" y="96" font-size="15" font-weight="600">Întrerupător</text><text x="380" y="115" font-size="12" id="sw-text">acum: O (oprit)</text>
             <rect x="470" y="82" width="40" height="36" rx="6" fill="var(--o-white)" stroke="var(--o-ink)" stroke-width="2"/>
             <text x="490" y="105" font-size="11" font-weight="600">clemă</text>
             <rect x="600" y="20" width="150" height="90" rx="10" fill="var(--o-pcb-red)" stroke="var(--o-ink)" stroke-width="2"/>
             <text x="675" y="58" font-size="16" font-weight="600" fill="#ffffff">Mușchi dreapta</text><text x="675" y="80" font-size="12" fill="#ffffff">L298N #2</text>
             <rect x="600" y="150" width="150" height="90" rx="10" fill="var(--o-pcb-red)" stroke="var(--o-ink)" stroke-width="2"/>
             <text x="675" y="186" font-size="16" font-weight="600" fill="#ffffff">Mușchi stânga</text><text x="675" y="206" font-size="12" fill="#ffffff">L298N #1 · iese 5 V</text>
-            <rect x="780" y="12" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="835" y="37" font-size="13" font-weight="600">față-dreapta</text>
-            <rect x="780" y="62" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="835" y="87" font-size="13" font-weight="600">spate-dreapta</text>
-            <rect x="780" y="142" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="835" y="167" font-size="13" font-weight="600">față-stânga</text>
-            <rect x="780" y="192" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="835" y="217" font-size="13" font-weight="600">spate-stânga</text>
+            <rect x="780" y="12" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="826" y="37" font-size="13" font-weight="600">față-dreapta</text>
+            <rect x="780" y="62" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="826" y="87" font-size="13" font-weight="600">spate-dreapta</text>
+            <rect x="780" y="142" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="826" y="167" font-size="13" font-weight="600">față-stânga</text>
+            <rect x="780" y="192" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="826" y="217" font-size="13" font-weight="600">spate-stânga</text>
             <rect x="600" y="300" width="150" height="60" rx="10" fill="var(--o-pcb-black)" stroke="var(--o-ink)" stroke-width="2"/>
             <text x="675" y="326" font-size="16" font-weight="600" fill="#ffffff">Creierul</text><text x="675" y="346" font-size="12" fill="#ffffff">ESP32 · 3,3 V</text>
             <rect x="240" y="300" width="170" height="60" rx="10" fill="var(--o-pcb-blue)" stroke="var(--o-ink)" stroke-width="2"/>
@@ -500,6 +571,19 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
             <text x="110" y="256">minus comun (GND): toate plăcile</text>
             <text x="740" y="284" fill="var(--o-blue)">comenzi (și la #2)</text>
             <text x="420" y="337" fill="var(--o-blue)">ecou, prin divizor</text>
+          </g>
+                  <g class="flowline-g" aria-hidden="true">
+            <path class="flowline" d="M162 100 H190 M290 100 H320 M440 100 H470 M510 100 H560 V65 H600 M560 100 V195 H600" stroke="#ffffff" stroke-width="3" stroke-dasharray="4 12"/>
+            <path class="flowline" d="M750 28 H780 M750 78 H780 M750 158 H780 M750 208 H780" stroke="#ffffff" stroke-width="2.5" stroke-dasharray="4 12"/>
+            <path class="flowline" d="M780 37 H750 M780 87 H750 M780 167 H750 M780 217 H750 M615 240 V264 H90 V147" stroke="#c9d0cd" stroke-width="3" stroke-dasharray="4 12"/>
+            <path class="flowline" d="M700 240 V300 M650 240 V285 H325 V300" stroke="#ffffff" stroke-width="2.5" stroke-dasharray="4 12"/>
+            <path class="flowline" d="M730 300 V250 M410 345 H590" stroke="#ffffff" stroke-width="2" stroke-dasharray="3 13"/>
+          </g>
+          <g fill="none" stroke="var(--o-ink)" stroke-width="2" aria-hidden="true">
+            <g class="spin"><circle cx="874" cy="32" r="8"/><path d="M866 32 H882 M874 24 V40"/></g>
+            <g class="spin"><circle cx="874" cy="82" r="8"/><path d="M866 82 H882 M874 74 V90"/></g>
+            <g class="spin"><circle cx="874" cy="162" r="8"/><path d="M866 162 H882 M874 154 V170"/></g>
+            <g class="spin"><circle cx="874" cy="212" r="8"/><path d="M866 212 H882 M874 204 V220"/></g>
           </g>
         </svg>
       </div>
@@ -514,6 +598,71 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       <div><b>De ce doi mușchi</b>Fiecare mușchi are două „ieșiri”. Cu doi mușchi, fiecare motor are ieșirea lui și nimic nu se supraîncălzește când robotul împinge în perete.</div>
       <div><b>De ce minusul e comun</b>Creierul trimite comenzi „față de minus”. Dacă mușchii au alt minus decât creierul, nu se înțeleg și robotul face prostii.</div>
       <div><b>De ce doar un 5 V</b>Ambii mușchi pot face 5 V, dar folosim doar 5 V-ul celui din stânga. Dacă le legi pe amândouă împreună, se „ceartă” și se pot strica.</div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-demo">
+    <div class="sec-head">
+      <p class="eyebrow">Încearcă</p>
+      <h2 id="h-demo">Cum virează și cum vede robotul</h2>
+      <p class="lead">Două jucării care arată exact ce va face programul robotului. Apasă butoanele.</p>
+    </div>
+    <div class="demos">
+      <div class="demo">
+        <h3>Virarea ca tancul</h3>
+        <p class="lead">Robotul nu întoarce roțile. Doar le învârte cu viteze diferite pe stânga și pe dreapta.</p>
+        <div class="stage">
+          <svg viewBox="0 0 360 260" role="img" aria-label="Robotul văzut de sus, care se mișcă după butonul apăsat">
+            <rect width="360" height="260" fill="var(--paper)"/>
+            <g stroke="#cfd7d3" stroke-width="1"><line x1="40" y1="0" x2="40" y2="260"/><line x1="80" y1="0" x2="80" y2="260"/><line x1="120" y1="0" x2="120" y2="260"/><line x1="160" y1="0" x2="160" y2="260"/><line x1="200" y1="0" x2="200" y2="260"/><line x1="240" y1="0" x2="240" y2="260"/><line x1="280" y1="0" x2="280" y2="260"/><line x1="320" y1="0" x2="320" y2="260"/><line x1="0" y1="40" x2="360" y2="40"/><line x1="0" y1="80" x2="360" y2="80"/><line x1="0" y1="120" x2="360" y2="120"/><line x1="0" y1="160" x2="360" y2="160"/><line x1="0" y1="200" x2="360" y2="200"/><line x1="0" y1="240" x2="360" y2="240"/></g>
+            <g id="tank" transform="translate(180 130)">
+              <rect x="-36" y="-32" width="12" height="22" rx="3" fill="var(--o-rubber)"/><line class="tread-l" x1="-30" y1="-30" x2="-30" y2="-12" stroke="#9aa3a0" stroke-width="8" stroke-dasharray="2 4"/><rect x="-36" y="10" width="12" height="22" rx="3" fill="var(--o-rubber)"/><line class="tread-l" x1="-30" y1="12" x2="-30" y2="30" stroke="#9aa3a0" stroke-width="8" stroke-dasharray="2 4"/><rect x="24" y="-32" width="12" height="22" rx="3" fill="var(--o-rubber)"/><line class="tread-r" x1="30" y1="-30" x2="30" y2="-12" stroke="#9aa3a0" stroke-width="8" stroke-dasharray="2 4"/><rect x="24" y="10" width="12" height="22" rx="3" fill="var(--o-rubber)"/><line class="tread-r" x1="30" y1="12" x2="30" y2="30" stroke="#9aa3a0" stroke-width="8" stroke-dasharray="2 4"/>
+              <rect x="-24" y="-36" width="48" height="72" rx="8" fill="var(--o-acrylic)" stroke="var(--o-ink)" stroke-width="2"/>
+              <rect x="-14" y="-6" width="28" height="22" rx="2" fill="var(--o-pcb-black)"/>
+              <rect x="-14" y="-40" width="28" height="8" rx="2" fill="var(--o-pcb-blue)"/>
+              <circle cx="-7" cy="-42" r="4" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="1.5"/><circle cx="7" cy="-42" r="4" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="1.5"/>
+              <path d="M0 -58 l-6 8 h12 Z" fill="var(--o-orange)"/>
+            </g>
+          </svg>
+        </div>
+        <div class="btns" role="group" aria-label="Comenzi pentru robot">
+          <button type="button" class="pbtn" data-move="fwd" aria-pressed="false">Înainte</button>
+          <button type="button" class="pbtn" data-move="back" aria-pressed="false">Înapoi</button>
+          <button type="button" class="pbtn" data-move="curveL" aria-pressed="false">Curbă la stânga</button>
+          <button type="button" class="pbtn" data-move="spinR" aria-pressed="false">Pe loc, la dreapta</button>
+          <button type="button" class="pbtn" data-move="stop" aria-pressed="true">Stop</button>
+        </div>
+        <p class="readout" id="tank-read" aria-live="polite">Toate roțile stau → robotul stă pe loc. Săgeata portocalie arată fața.</p>
+      </div>
+
+      <div class="demo">
+        <h3>Ochii de liliac</h3>
+        <p class="lead">Senzorul trimite un sunet pe care nu-l auzi și ascultă ecoul. Mută peretele și trimite un sunet.</p>
+        <div class="stage">
+          <svg viewBox="0 0 360 160" role="img" aria-label="Senzorul trimite un sunet spre perete și ascultă ecoul">
+            <rect width="360" height="160" fill="var(--paper)"/>
+            <line x1="0" y1="140" x2="360" y2="140" stroke="var(--o-metal-d)" stroke-width="2" stroke-dasharray="5 5"/>
+            <rect x="8" y="58" width="30" height="48" rx="4" fill="var(--o-acrylic)" stroke="var(--o-ink)" stroke-width="2"/>
+            <rect x="36" y="56" width="8" height="52" rx="2" fill="var(--o-pcb-blue)"/>
+            <rect x="44" y="60" width="10" height="18" rx="4" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="1.5"/>
+            <rect x="44" y="86" width="10" height="18" rx="4" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="1.5"/>
+            <g id="ping" opacity="0" transform="translate(52 0)">
+              <path d="M2 64 q14 18 0 36" fill="none" stroke="var(--o-orange)" stroke-width="4" stroke-linecap="round"/>
+              <path d="M12 58 q20 24 0 48" fill="none" stroke="var(--o-orange)" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+            </g>
+            <g id="wall-g" transform="translate(148 0)">
+              <rect x="0" y="22" width="14" height="118" fill="#b9704a" stroke="var(--o-ink)" stroke-width="2"/>
+              <path d="M0 52 H14 M0 82 H14 M0 112 H14 M7 22 V52 M7 82 V112" stroke="var(--o-ink)" stroke-width="1"/>
+              <text id="wall-lbl" x="7" y="16" text-anchor="middle" font-family="Lexend, sans-serif" font-size="13" font-weight="600" fill="var(--o-ink)">40 cm</text>
+            </g>
+          </svg>
+        </div>
+        <label class="range" for="wall">Cât de departe e peretele
+          <input type="range" id="wall" min="10" max="120" step="1" value="40">
+        </label>
+        <div class="btns"><button type="button" class="pbtn" id="btn-ping">Trimite un sunet</button></div>
+        <p class="readout" id="sonar-read" aria-live="polite">Apasă „Trimite un sunet”. În realitate sunetul e de vreo 2000 de ori mai rapid decât în animație.</p>
+      </div>
     </div>
   </section>
 
@@ -537,15 +686,73 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     <div class="res-table" id="res"></div>
   </section>
 
+  <section aria-labelledby="h-meter">
+    <div class="sec-head">
+      <p class="eyebrow">Stetoscopul robotului</p>
+      <h2 id="h-meter">Cum folosești multimetrul</h2>
+      <p class="lead">Îl folosim în trei feluri. Alege unul și uită-te unde stă rotița și în ce mufă intră firul roșu.</p>
+    </div>
+    <div class="meter">
+      <div class="stage">
+        <svg viewBox="0 0 300 270" role="img" aria-label="Multimetru cu rotița și firele în mufele potrivite pentru modul ales">
+          <rect width="300" height="270" fill="var(--paper)"/>
+          <rect x="70" y="8" width="160" height="236" rx="16" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/>
+          <rect x="88" y="20" width="124" height="38" rx="4" fill="#c9d4c4" stroke="var(--o-ink)" stroke-width="1.5"/>
+          <text x="200" y="47" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="20" font-weight="700" fill="var(--o-ink)">7.82</text>
+          <circle cx="150" cy="136" r="44" fill="var(--o-pcb-black)"/>
+          <g font-family="Lexend, sans-serif" font-size="12" font-weight="700" fill="var(--o-ink)" text-anchor="middle">
+            <text x="150" y="80">OFF</text><text x="96" y="106">V⎓ 20</text><text x="206" y="106">•)))</text><text x="206" y="178">10A</text>
+          </g>
+          <g id="dial-ptr"><line x1="150" y1="136" x2="150" y2="98" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/><circle cx="150" cy="136" r="10" fill="#4b5250"/></g>
+          <g fill="var(--o-pcb-black)" stroke="var(--o-ink)" stroke-width="1.5"><circle cx="110" cy="214" r="8"/><circle cx="140" cy="214" r="8"/><circle cx="166" cy="214" r="8"/></g>
+          <g font-family="Lexend, sans-serif" font-size="10" font-weight="700" fill="var(--o-ink)" text-anchor="middle"><text x="110" y="236">10A</text><text x="140" y="236">COM</text><text x="168" y="236">VΩmA</text></g>
+          <path d="M140 214 C140 250 60 255 20 262" fill="none" stroke="var(--o-wire-black)" stroke-width="4"/>
+          <circle cx="140" cy="214" r="5" fill="var(--o-wire-black)"/>
+          <g id="red-plug"><path d="M166 214 C176 250 240 250 292 262" fill="none" stroke="var(--o-wire-red)" stroke-width="4"/><circle cx="166" cy="214" r="5" fill="var(--o-wire-red)"/></g>
+        </svg>
+      </div>
+      <div class="demo" style="border:0;padding:0;background:transparent">
+        <div class="btns" role="group" aria-label="Ce măsori">
+          <button type="button" class="pbtn" data-mode="volt" aria-pressed="true">Volți</button>
+          <button type="button" class="pbtn" data-mode="beep" aria-pressed="false">Bip (continuitate)</button>
+          <button type="button" class="pbtn" data-mode="amp" aria-pressed="false">Curent 10 A</button>
+        </div>
+        <h3 id="meter-title">Tensiune (câți volți are bateria)</h3>
+        <ol id="meter-steps"></ol>
+        <p class="note">Pe multimetrul tău (DT-182) semnele pot fi așezate altfel pe rotiță. Caută simbolul, nu locul din desen.</p>
+      </div>
+    </div>
+  </section>
+
   <section aria-labelledby="h-missions">
     <div class="sec-head">
       <p class="eyebrow">Construcția</p>
       <h2 id="h-missions">Misiunile</h2>
-      <p class="lead">Zece misiuni, de la piese până la primul drum. Fiecare are tot ce-ți trebuie: ce pregătești, pașii unul câte unul,
+      <p class="lead">Unsprezece misiuni, de la piese până la primul drum. Fiecare are tot ce-ți trebuie: ce pregătești, pașii unul câte unul,
         un desen unde ajută, ce trebuie să vezi la final și când te oprești. Le facem în ordine; deschide-o pe cea la care ești.</p>
     </div>
     <ol class="road" id="road" aria-label="Lista misiunilor"></ol>
     <div class="missions" id="missions"></div>
+  </section>
+
+  <section aria-labelledby="h-faq">
+    <div class="sec-head">
+      <p class="eyebrow">Fără panică</p>
+      <h2 id="h-faq">Când ceva nu merge</h2>
+      <p class="lead">Greșelile de mai jos le face aproape oricine la primul robot. Fiecare are o rezolvare simplă.</p>
+    </div>
+    <div class="faq">
+      <details><summary>Letconul nu topește fludorul</summary><p>Așteaptă 3 minute după ce l-ai băgat în priză. Apoi șterge vârful pe buretele umed și atinge-l cu fludor: dacă vârful rămâne negru, șterge-l încă o dată și cositorește-l din nou.</p></details>
+      <details><summary>Fludorul face o bilă și nu se prinde de fir</summary><p>Încălzești fludorul, nu firul. Ține vârful 2 secunde pe fir sau pe plăcuță și abia apoi atinge fludorul de fir, nu de vârf. Lipitura bună e lucioasă și în formă de con.</p></details>
+      <details><summary>Un motor nu se învârte la testul cu acumulatorul</summary><p>Încearcă alt acumulator, poate e descărcat. Apoi pune multimetrul pe bip între capătul firului și plăcuța motorului: fără bip, lipitura e rece sau firul e rupt și o refaci.</p></details>
+      <details><summary>O roată se freacă de șasiu</summary><p>Roata e împinsă prea mult pe ax. Trage-o înapoi 2–3 mm. Dacă tot se freacă, motorul stă strâmb în suporți: slăbește puțin șuruburile, îndreaptă-l și strânge-le la loc.</p></details>
+      <details><summary>Robotul se învârte în cerc când ar trebui să meargă drept</summary><p>Un motor merge invers față de vecinul lui de pe aceeași parte. Cu robotul oprit, inversează cele două fire ale acelui motor în bornă (roșu cu negru). Nu e nevoie să schimbi programul.</p></details>
+      <details><summary>Multimetrul arată „1” în stânga</summary><p>Valoarea e prea mare pentru treapta aleasă. Mută rotița pe treapta următoare, mai mare.</p></details>
+      <details><summary>Multimetrul arată un minus în fața cifrei</summary><p>Ai pus sondele invers: roșul pe minus, negrul pe plus. Nu se strică nimic; cifra e corectă, doar semnul e invers.</p></details>
+      <details><summary>PC-ul nu vede creierul (ESP32)</summary><p>De cele mai multe ori e cablul: unele cabluri doar încarcă și nu transmit date. Încearcă alt cablu USB-C. Dacă tot nu merge, instalăm împreună driverul CP210x.</p></details>
+      <details><summary>Plexiglasul a crăpat lângă un șurub</summary><p>Oprește-te din strâns. O fisură mică nu e o problemă dacă piesa ține. Pune o șaibă sub piuliță și spune-mi, ca să vedem dacă trebuie mutat suportul.</p></details>
+      <details><summary>S-a ars siguranța de 3 A</summary><p>Siguranța și-a făcut treaba: ceva e în scurtcircuit sau un motor e blocat. Pune întrerupătorul pe O și scoate bateriile. Nu pune altă siguranță până nu găsim împreună cauza.</p></details>
+    </div>
   </section>
 
   <footer>
@@ -695,8 +902,8 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     { id: 'tools', name: 'Unelte' },
   ];
   const STATUS = {
-    'in-poza': 'în poza ta',
-    'confirmat': 'confirmat de tine',
+    'in-poza': 'avem',
+    'confirmat': 'avem',
     'pe-drum': 'pe drum',
     'lipsa': 'lipsește',
     'de-cumparat': 'de cumpărat',
@@ -708,10 +915,10 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       where: 'Comandat la Optimus Digital. Până vine, lucrăm la corpul robotului.' },
     { id: 'hcsr04', g: 'brain', art: 'hcsr04', st: 'confirmat', name: 'Ochii de liliac', pack: 'HC-SR04 · senzor ultrasonic',
       what: 'Trimite un sunet atât de subțire încât nu-l auzi și ascultă ecoul. Din cât durează ecoul, robotul știe la câți centimetri e peretele.',
-      where: 'Placă albastră cu doi „ochi” rotunzi argintii. Probabil în punga cu eticheta albă.' },
+      where: 'Placă albastră cu doi „ochi” rotunzi argintii și 4 pini.' },
     { id: 'l298n', g: 'brain', art: 'l298n', st: 'in-poza', name: 'Mușchii (2 drivere de motoare)', pack: '2 × L298N',
       what: 'Creierul e prea slab ca să învârtă singur motoarele. Un L298N ia curent din baterii și îl dă motoarelor exact cum îi spune creierul: înainte, înapoi, mai tare, mai încet. Avem doi: unul pentru roțile din stânga, unul pentru cele din dreapta.',
-      where: 'Plăcile roșii cu „pieptene” negru (radiatorul), din cele două pungi negre din mijloc.',
+      where: 'Placă roșie de vreo 4 × 4 cm, cu un radiator negru cu „dinți” și borne albastre cu șuruburi. Vine în pungă neagră.',
       tip: 'Plăcile din pungi negre le ții de margini și nu le pui pe covor sau pe haine de lână.' },
     { id: 'chassis', g: 'body', art: 'chassis', st: 'confirmat', name: 'Șasiul cu două etaje', pack: 'Kit Robot cu 4 Motoare · 2 plăci 15,5 × 26 cm',
       what: 'Scheletul robotului: două plăci transparente puse una peste alta, ca un raft. Între ele stau motoarele, bateriile și mușchii; sus, creierul și ochii.',
@@ -734,47 +941,47 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       where: 'Piesă de plastic printată, de la ArduShop.' },
     { id: 'batteries', g: 'power', art: 'batteries', st: 'in-poza', name: 'Bateriile reîncărcabile', pack: 'VARTA AA NiMH · 8 bucăți',
       what: 'Rezervorul de energie. În robot intră 6; 2 rămân de schimb. Se încarcă de multe ori, nu se aruncă.',
-      where: 'Pachetele verzi și albastre, sus în dreapta.' },
+      where: 'Acumulatori VARTA AA, în pachete verzi sau albastre de câte 4.' },
     { id: 'charger', g: 'power', art: 'charger', st: 'confirmat', name: 'Încărcătorul', pack: 'încărcător AA NiMH',
       what: 'Reumple bateriile. Doar bateriile reîncărcabile intră în el, niciodată cele obișnuite (alcaline).',
-      where: 'Probabil cutia albă de sub baterii.' },
+      where: 'Aparatul cu locașuri pentru acumulatori AA, care se bagă în priză.' },
     { id: 'holder6', g: 'power', art: 'holder6', st: 'confirmat', name: 'Cutia de baterii', pack: 'suport 6 × AA cu fir și mufă',
       what: 'Ține cele 6 baterii una după alta, ca să facă împreună în jur de 7,2 V. Firul roșu e plusul, cel negru minusul.',
       where: 'De la ArduShop. În kit e și o cutie de 4 baterii: pe aceea nu o folosim.' },
     { id: 'fuses', g: 'power', art: 'fuses', st: 'in-poza', name: 'Siguranțele', pack: 'siguranțe de sticlă 5 × 20 mm · 0,2–15 A',
       what: 'Paznicul robotului. Dacă ceva se scurtcircuitează, firul subțire din ea se topește primul și oprește curentul, înainte să se încingă altceva. Folosim una de 3 A.',
-      where: 'Cutiuța transparentă cu căsuțe (0,2 A … 15 A).' },
+      where: 'Cutiuță transparentă cu căsuțe pe care scrie 0,2 A … 15 A. Siguranța e un tub mic de sticlă cu capete de metal.' },
     { id: 'fuseholder', g: 'power', art: 'fuseHolder', st: 'in-poza', name: 'Casa siguranței', pack: 'portsiguranță pe fir',
       what: 'Un tub negru pe fir roșu, care se deșurubează la mijloc. Înăuntru pui siguranța de 3 A. Stă pe firul de plus de la baterii.',
-      where: 'Firele roșii cu tuburi negre, jos în stânga. Ai câteva; ne trebuie una.' },
+      where: 'Tub negru de plastic pe un fir roșu, care se deșurubează la mijloc. Sunt mai multe; ne trebuie unul.' },
     { id: 'terminal', g: 'power', art: 'terminal', st: 'in-poza', name: 'Clema cu șuruburi', pack: 'regletă (clemă șir)',
       what: 'Legi două fire fără să lipești: bagi capetele în căsuță și strângi șurubul. Tăiem din ea o bucată de 3–4 căsuțe.',
-      where: 'Barele albe de plastic, jos în mijloc.' },
+      where: 'Bară albă de plastic cu șuruburi, ca o bandă de prize mici.' },
     { id: 'capacitor', g: 'power', art: 'capacitor', st: 'in-poza', name: 'Rezervorul mic', pack: 'condensator electrolitic 1000 µF / 16 V',
       what: 'O baterie minusculă care se umple și se golește foarte repede. Când pornesc motoarele brusc, ajută ca creierul să nu se reseteze.',
-      where: 'Cilindrul negru din punguța mică de lângă letcon.',
+      where: 'Cilindru negru mic, cu două picioare și o dungă gri cu semnul −.',
       warn: 'Are plus și minus. Dunga cu semnul − și piciorul mai scurt sunt minusul. Montat invers se poate umfla sau sparge.' },
     { id: 'redblack', g: 'link', art: 'redBlack', st: 'in-poza', name: 'Firele de curent', pack: 'fir litat 22 AWG roșu + negru',
       what: 'Fire moi, pentru curentul mare: de la baterii la siguranță, la întrerupător, la mușchi și la motoare.',
-      where: 'Ghemul roșu-negru de lângă placa cu găurele.' },
+      where: 'Ghem de fir moale, roșu și negru.' },
     { id: 'breadboard', g: 'link', art: 'breadboard', st: 'in-poza', name: 'Placa cu găurele', pack: 'breadboard MB-102 · 830 de puncte',
       what: 'Înfigi piesele și firele în găurele, fără lipit. Găurelele de pe același rând mic sunt legate între ele pe dedesubt.',
-      where: 'Cutia albă cu portocaliu, sus în dreapta.' },
+      where: 'Placă albă cu sute de găurele, în cutia MB-102.' },
     { id: 'dupont', g: 'link', art: 'dupont', st: 'in-poza', name: 'Firele cu mufe', pack: 'fire Dupont mamă-tată și tată-tată',
       what: 'Fire colorate pentru semnale (curent mic). „Tată” are un ac la capăt, „mamă” are o găurică. Culorile ne ajută să nu le încurcăm.',
-      where: 'Mănunchiul curcubeu din mijloc, jos.' },
+      where: 'Mănunchi de fire colorate, cu mufe negre la capete.' },
     { id: 'resistors', g: 'link', art: 'resistor', st: 'in-poza', name: 'Frânele de curent', pack: 'rezistoare 1/4 W',
       what: 'Lasă să treacă doar o parte din curent. Cu două rezistoare facem un „împărțitor”, ca semnalul de 5 V al ochilor să ajungă la creier ca 3 V. Benzile colorate spun valoarea.',
-      where: 'Punga mare cu benzile galbene de hârtie. Avem nevoie de 2,2 k, 3,3 k, 4,7 k și 10 k.' },
+      where: 'Zeci de piese mici, albastre, cu dungi colorate, prinse pe o bandă de hârtie galbenă.' },
     { id: 'usbc', g: 'link', art: 'usbc', st: 'confirmat', name: 'Cablul de date', pack: 'cablu USB-A → USB-C de date',
       what: 'Leagă creierul de PC: prin el punem programul pe robot și citim mesajele lui. Nu încarcă nimic.',
       where: 'De acasă. Testul: cu el, PC-ul trebuie să „vadă” telefonul.' },
     { id: 'heatshrink', g: 'link', art: 'heatShrink', st: 'extra', name: 'Haina firelor', pack: 'tub termocontractabil',
       what: 'Tuburi care se strâng la căldură. Le tragi peste o lipitură și o îmbracă, ca să nu atingă nimic. Nu erau în listă, dar ne prind foarte bine la motoare.',
-      where: 'Cele două pungi cu tuburi colorate.' },
+      where: 'Pungi cu tuburi colorate, goale pe dinăuntru.' },
     { id: 'iron', g: 'tools', art: 'iron', st: 'in-poza', name: 'Letconul', pack: 'TOLSEN 38063 · 60 W',
       what: 'Un „creion” cu vârful foarte fierbinte, care topește fludorul ca să lipim firele.',
-      where: 'Ambalajul galben, sus în stânga.',
+      where: 'TOLSEN 38063, în ambalaj galben-negru.',
       warn: 'Vârful ajunge pe la 440 °C și rămâne fierbinte și după ce îl scoți din priză. Nu-l pornim până nu avem suportul de letcon.' },
     { id: 'stand', g: 'tools', art: 'stand', st: 'de-cumparat', name: 'Suportul de letcon', pack: 'Suport Mare pentru Letcon · Optimus Digital',
       what: 'Locul unde stă letconul fierbinte între două lipituri, ca să nu stea pe masă. Buretele umed curăță vârful.',
@@ -782,11 +989,11 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       warn: 'Fără suport nu pornim letconul.' },
     { id: 'solder', g: 'tools', art: 'solder', st: 'in-poza', name: 'Fludorul', pack: 'sârmă de lipit 0,8 mm cu flux',
       what: 'Sârma moale care se topește sub letcon și devine lipitura. Fluxul din ea o ajută să curgă frumos.',
-      where: 'Tubul argintiu cu capac albastru, în dreapta.',
+      where: 'Tub mic argintiu cu capac albastru, cu sârmă subțire înăuntru.',
       tip: 'După ce lucrezi cu fludor, speli mâinile. Nu mănânci în timp ce lipești.' },
     { id: 'multimeter', g: 'tools', art: 'multimeter', st: 'in-poza', name: 'Stetoscopul (multimetrul)', pack: 'DT-182',
       what: 'Măsoară câți volți are o baterie și verifică dacă un fir e întreg: dacă e, face „bip”. Îl folosim înainte de fiecare prima pornire.',
-      where: 'Ambalajul albastru, jos în dreapta.' },
+      where: 'Aparat galben-negru DT-182, cu ecran, o rotiță și două fire: roșu și negru.' },
     { id: 'tools', g: 'tools', art: 'tools', st: 'confirmat', name: 'Șurubelnițele și cleștele', pack: 'șurubelniță cruce PH1 + șurubelniță dreaptă mică + clește de dezizolat',
       what: 'Cea în cruce strânge șuruburile kitului. Cea dreaptă, mică, strânge bornele albastre ale mușchilor. Cleștele dezizolează: scoate plasticul de pe capătul firului, ca să ajungi la sârma din interior.',
       where: 'De acasă.' },
@@ -795,7 +1002,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       where: 'De acasă.' },
     { id: 'croc', g: 'tools', art: 'croc', st: 'extra', name: 'Cleștii crocodil', pack: 'clești mari roșu / negru',
       what: 'Clești pentru prins fire în timpul testelor. Nu erau în listă. La robotul 01 nu-i folosim.',
-      where: 'Cleștii arămii cu mâner roșu și negru, în mijloc.',
+      where: 'Doi clești mari, arămii, cu mânere roșu și negru.',
       warn: 'Nu-i pui pe baterii ca să „vezi dacă merge”: dacă se ating între ei, e scurtcircuit.' },
   ];
 
@@ -1363,6 +1570,38 @@ const MISSIONS = [
     see: "Fiecare parte se verifică la multimetru înainte de următoarea.",
     stop: "Orice fir pe care nu știi unde merge: îl lași nelegat și mă întrebi.",
     photo: "O poză după fiecare parte (9a … 9g).",
+    check: [
+      "Polaritatea verificată cu multimetrul la firele cutiei de baterii: roșu = plus.",
+      "Bip între plus și minus? NU trebuie să fie bip (altfel e scurtcircuit).",
+      "Nicio picătură de fludor sau fir liber care atinge altceva.",
+      "Siguranța de 3 A e în casa ei; întrerupătorul e pe O.",
+      "Motoarele au roțile în aer (robotul stă pe o cutie).",
+      "Acumulatorii sunt încărcați, fără umflături sau urme.",
+      "Știi ce faci dacă iese fum, miros sau căldură: întrerupătorul pe O, apoi scoți o baterie.",
+      "Prima pornire a creierului se face fără motoarele legate la mușchi (le scoți din borne).",
+    ],
+  },
+  {
+    id: "m10",
+    n: "10",
+    title: "Programul și primul drum",
+    time: "2 sesiuni",
+    state: "later",
+    stateText: "după cablare",
+    pre: "Programul îl scriu eu, pas cu pas, și îl încarci tu. Fiecare test începe cu roțile în aer. Detaliile vin după cablare.",
+    need: ["robotul cablat", "acumulatori încărcați", "cablul USB-C", "o cutie pe care stă robotul", "o cameră liberă pe jos"],
+    steps: [
+      "**Siguranța în program:** la pornire motoarele stau oprite; dacă nu primește comenzi o jumătate de secundă, se oprește singur.",
+      "**Un motor pe rând**, cu roțile în aer, la viteză mică: fiecare roată se învârte în sensul bun.",
+      "**Ochii:** pe Serial Monitor vezi distanța până la mână, de la 10 la 100 cm.",
+      "**Bateria:** creierul citește tensiunea; o comparăm cu multimetrul.",
+      "**Toate împreună**, tot cu roțile în aer: înainte, înapoi, pe loc la stânga și la dreapta.",
+      "**Primul drum:** pe podea, viteză mică, cineva stă lângă întrerupător. Robotul merge și se oprește în fața unei cutii.",
+      "**Ocolirea:** robotul vede cutia, se oprește, se întoarce pe loc și merge mai departe.",
+    ],
+    see: "Robotul se plimbă singur prin cameră și ocolește obstacolele.",
+    stop: "Robotul o ia razna, se lovește tare sau ceva se încălzește: întrerupătorul pe O.",
+    photo: "Un filmuleț scurt cu primul drum.",
   },
 ];
 
@@ -1416,7 +1655,7 @@ const MISSIONS = [
       return '<article class="part' + (on ? ' done' : '') + '" id="part-' + p.id + '">' +
         '<div class="art">' + ART[p.art] + '<span class="pill ' + p.st + '">' + STATUS[p.st] + '</span></div>' +
         '<div class="body"><h3 class="name">' + esc(p.name) + '</h3><p class="pack">' + esc(p.pack) + '</p>' +
-        '<p class="what">' + esc(p.what) + '</p><p class="where"><b>Unde o găsești:</b> ' + esc(p.where) + '</p>' +
+        '<p class="what">' + esc(p.what) + '</p><p class="where"><b>Cum o recunoști:</b> ' + esc(p.where) + '</p>' +
         (p.warn ? '<p class="warn"><b>Atenție:</b> ' + esc(p.warn) + '</p>' : '') +
         (p.tip ? '<p class="tip"><b>Sfat:</b> ' + esc(p.tip) + '</p>' : '') + '</div>' +
         '<label class="check"><input type="checkbox" id="cb-p-' + p.id + '" data-id="p-' + p.id + '"' + (on ? ' checked' : '') + '> Am găsit-o</label>' +
@@ -1449,6 +1688,10 @@ const MISSIONS = [
         '<div><p class="eyebrow">Ai nevoie de</p><div class="need">' + m.need.map((x) => '<span>' + esc(x) + '</span>').join('') + '</div></div>' +
         (m.fig ? '<figure class="figure m-fig"><div class="scroll">' + FIGS[m.fig] + '</div><p class="cap">' + esc(m.figCap || '') + '</p></figure>' : '') +
         '<ol class="steps">' + steps + '</ol>' +
+        (m.check ? '<div class="checklist"><p class="eyebrow">Checklist prima alimentare · bifezi tot înainte să pui bateriile</p><ul class="steps">' +
+          m.check.map((c, i) => { const id = m.id + '-c' + (i + 1); const on = !!state.checked[id];
+            return '<li><label class="tick' + (on ? ' done' : '') + '"><input type="checkbox" id="cb-' + id + '" data-id="' + id + '"' + (on ? ' checked' : '') + '><span>' + md(c) + '</span></label></li>'; }).join('') +
+          '</ul></div>' : '') +
         '<div class="boxes"><div class="box see"><b>Ce trebuie să vezi</b>' + md(m.see) + '</div>' +
         '<div class="box stop"><b>Oprește-te dacă</b>' + md(m.stop) + '</div>' +
         '<div class="box photo"><b>Poza pentru chat</b>' + md(m.photo) + '</div></div></div></details>';
@@ -1574,5 +1817,280 @@ const MISSIONS = [
   })();
 })();
 </script>
+
+<script>
+(function () {
+  "use strict";
+  const reduce =
+    window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const $ = (id) => document.getElementById(id);
+
+  // ---- energy flow: the switch on the diagram ----
+  const flowFig = $("flow-fig");
+  const powerBtn = $("btn-power");
+  const swText = $("sw-text");
+  if (flowFig && powerBtn) {
+    powerBtn.addEventListener("click", () => {
+      const on = !flowFig.classList.contains("energy-on");
+      flowFig.classList.toggle("energy-on", on);
+      powerBtn.setAttribute("aria-pressed", String(on));
+      powerBtn.textContent = on
+        ? "Întrerupătorul: I (pornit) · apasă ca să oprești"
+        : "Întrerupătorul: O (oprit) · apasă ca să pornești";
+      if (swText)
+        swText.textContent = on ? "acum: I (pornit)" : "acum: O (oprit)";
+    });
+  }
+
+  // ---- tank steering demo ----
+  const tank = $("tank");
+  const read = $("tank-read");
+  const treads = {
+    l: document.querySelectorAll(".tread-l"),
+    r: document.querySelectorAll(".tread-r"),
+  };
+  const ARENA = { w: 360, h: 260 };
+  const MOVES = {
+    fwd: {
+      l: 1,
+      r: 1,
+      text: "Stânga: înainte · dreapta: înainte → merge drept înainte.",
+    },
+    back: {
+      l: -1,
+      r: -1,
+      text: "Stânga: înapoi · dreapta: înapoi → merge drept înapoi.",
+    },
+    curveL: {
+      l: 0.35,
+      r: 1,
+      text: "Stânga: încet · dreapta: repede → ia o curbă la stânga.",
+    },
+    spinR: {
+      l: 1,
+      r: -1,
+      text: "Stânga: înainte · dreapta: înapoi → se învârte pe loc, spre dreapta.",
+    },
+    stop: { l: 0, r: 0, text: "Toate roțile stau → robotul stă pe loc." },
+  };
+  const sim = {
+    x: ARENA.w / 2,
+    y: ARENA.h / 2,
+    th: 0,
+    l: 0,
+    r: 0,
+    offL: 0,
+    offR: 0,
+    last: 0,
+    raf: 0,
+  };
+  const SPEED = 70; // px per second at full speed
+  const TRACK = 64; // distance between left and right wheels, px
+
+  function step(dt) {
+    const vl = sim.l * SPEED;
+    const vr = sim.r * SPEED;
+    const v = (vl + vr) / 2;
+    sim.th += ((vl - vr) / TRACK) * dt;
+    sim.x += v * Math.sin(sim.th) * dt;
+    sim.y -= v * Math.cos(sim.th) * dt;
+    if (sim.x < -30) sim.x = ARENA.w + 30;
+    if (sim.x > ARENA.w + 30) sim.x = -30;
+    if (sim.y < -30) sim.y = ARENA.h + 30;
+    if (sim.y > ARENA.h + 30) sim.y = -30;
+    sim.offL += vl * dt;
+    sim.offR += vr * dt;
+  }
+  function draw() {
+    if (!tank) return;
+    tank.setAttribute(
+      "transform",
+      "translate(" +
+        sim.x.toFixed(1) +
+        " " +
+        sim.y.toFixed(1) +
+        ") rotate(" +
+        ((sim.th * 180) / Math.PI).toFixed(1) +
+        ")",
+    );
+    treads.l.forEach((t) =>
+      t.setAttribute("stroke-dashoffset", (sim.offL % 12).toFixed(1)),
+    );
+    treads.r.forEach((t) =>
+      t.setAttribute("stroke-dashoffset", (sim.offR % 12).toFixed(1)),
+    );
+  }
+  function loop(ts) {
+    if (!sim.last) sim.last = ts;
+    const dt = Math.min(0.05, (ts - sim.last) / 1000);
+    sim.last = ts;
+    step(dt);
+    draw();
+    if (sim.l || sim.r) sim.raf = requestAnimationFrame(loop);
+    else sim.raf = 0;
+  }
+  document.querySelectorAll("[data-move]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const m = MOVES[b.dataset.move];
+      if (!m) return;
+      sim.l = m.l;
+      sim.r = m.r;
+      if (read) read.textContent = m.text;
+      document
+        .querySelectorAll("[data-move]")
+        .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      if (reduce) {
+        for (let i = 0; i < 40; i += 1) step(0.025); // one second of motion, drawn once
+        draw();
+        return;
+      }
+      if (!sim.raf && (sim.l || sim.r)) {
+        sim.last = 0;
+        sim.raf = requestAnimationFrame(loop);
+      }
+    }),
+  );
+  draw();
+
+  // ---- "bat eyes" (ultrasonic) demo ----
+  const wall = $("wall");
+  const wallG = $("wall-g");
+  const wallLbl = $("wall-lbl");
+  const ping = $("ping");
+  const pingBtn = $("btn-ping");
+  const sonarRead = $("sonar-read");
+  const X0 = 52; // sensor face, px
+  const PX_PER_CM = 2.4;
+  const LIMIT_CM = 20;
+  let busy = false;
+  function wallX() {
+    return X0 + Number(wall.value) * PX_PER_CM;
+  }
+  function placeWall() {
+    if (!wall) return;
+    const x = wallX();
+    wallG.setAttribute("transform", "translate(" + x.toFixed(1) + " 0)");
+    wallLbl.textContent = wall.value + " cm";
+  }
+  function result() {
+    const d = Number(wall.value);
+    const t = (2 * d) / 34.3;
+    const tTxt = t.toFixed(2).replace(".", ",");
+    const go = d > LIMIT_CM;
+    sonarRead.innerHTML =
+      "Sunetul a mers până la perete și înapoi în <b>" +
+      tTxt +
+      " ms</b> (miimi de secundă). " +
+      "Creierul calculează: " +
+      tTxt +
+      " × 34,3 ÷ 2 = <b>" +
+      d +
+      " cm</b>. " +
+      (go
+        ? "E mai mult de " +
+          LIMIT_CM +
+          " cm, deci robotul <b>merge înainte</b>."
+        : "E sub " +
+          LIMIT_CM +
+          " cm, deci robotul <b>se oprește și se întoarce</b>.");
+  }
+  if (wall && pingBtn) {
+    wall.addEventListener("input", () => {
+      placeWall();
+      sonarRead.textContent = "Apasă „Trimite un sunet”.";
+    });
+    placeWall();
+    pingBtn.addEventListener("click", () => {
+      if (busy) return;
+      if (reduce) {
+        result();
+        return;
+      }
+      busy = true;
+      const dist = wallX() - X0;
+      const dur = 500 + dist * 6; // slowed down a lot: real sound is ~2000x faster
+      const t0 = performance.now();
+      ping.setAttribute("opacity", "1");
+      function frame(now) {
+        const p = Math.min(1, (now - t0) / dur);
+        const out = p < 0.5;
+        const k = out ? p * 2 : (1 - p) * 2;
+        const x = X0 + dist * k;
+        ping.setAttribute(
+          "transform",
+          "translate(" + x.toFixed(1) + " 0)" + (out ? "" : " scale(-1 1)"),
+        );
+        if (p < 1) requestAnimationFrame(frame);
+        else {
+          ping.setAttribute("opacity", "0");
+          busy = false;
+          result();
+        }
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+
+  // ---- multimeter modes ----
+  const MODES = {
+    volt: {
+      angle: -60,
+      jack: "v",
+      title: "Tensiune (câți volți are bateria)",
+      steps: [
+        "Firul negru în mufa COM, firul roșu în mufa VΩmA.",
+        "Rotița pe V⎓ (V cu linie dreaptă), treapta 20.",
+        "Sonda roșie pe plus (+), sonda neagră pe minus (−).",
+        "Citești cifra: la 6 acumulatori plini, cam 7,8–8,4. Dacă apare un minus în față, ai inversat sondele: nu e grav.",
+      ],
+    },
+    beep: {
+      angle: 60,
+      jack: "v",
+      title: "Continuitate (e firul întreg? face bip)",
+      steps: [
+        "Firele în COM și VΩmA, ca la tensiune.",
+        "Rotița pe simbolul cu sunet (•)))) sau cu dioda.",
+        "Atinge sondele între ele: trebuie să auzi bip. Așa știi că merge.",
+        "Atinge cele două capete ale firului sau ale lipiturii: bip = legat; fără bip = rupt. Doar cu robotul OPRIT, fără baterii.",
+      ],
+    },
+    amp: {
+      angle: 120,
+      jack: "a",
+      title: "Curent mare (doar în Misiunea 8)",
+      steps: [
+        "Firul negru în COM, firul roșu mutat în mufa 10A.",
+        "Rotița pe 10A.",
+        "Multimetrul se pune „în drumul” curentului, nu peste baterie (desenul de la Misiunea 8).",
+        "Măsori cel mult 10 secunde. Apoi muți firul roșu ÎNAPOI în VΩmA. Altfel, la următoarea măsurare de tensiune faci scurtcircuit.",
+      ],
+    },
+  };
+  const ptr = $("dial-ptr");
+  const plug = $("red-plug");
+  const meterTitle = $("meter-title");
+  const meterSteps = $("meter-steps");
+  function setMode(key) {
+    const m = MODES[key];
+    if (!m || !ptr) return;
+    ptr.style.transform = "rotate(" + m.angle + "deg)";
+    plug.style.transform =
+      m.jack === "a" ? "translateX(-56px)" : "translateX(0px)";
+    meterTitle.textContent = m.title;
+    meterSteps.innerHTML = m.steps.map((s) => "<li>" + s + "</li>").join("");
+    document
+      .querySelectorAll("[data-mode]")
+      .forEach((b) =>
+        b.setAttribute("aria-pressed", String(b.dataset.mode === key)),
+      );
+  }
+  document
+    .querySelectorAll("[data-mode]")
+    .forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
+  setMode("volt");
+})();
+</script>
+
 </body>
 </html>
