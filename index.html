@@ -232,6 +232,9 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
 .demo .readout { font-size: 15px; min-height: 3em; }
 .demo label.range { display: grid; gap: 4px; font-size: 14px; color: var(--muted); }
 .demo input[type=range] { width: 100%; accent-color: var(--accent); }
+.pbtn.turbo { border-style: dashed; }
+.pbtn.turbo[aria-pressed="true"] { background: var(--stop); color: #ffffff; border: 1px solid transparent; }
+.note-turbo { font-size: 13px; color: var(--muted); background: var(--bg); border-radius: 10px; padding: 10px 12px; }
 
 /* multimeter */
 .meter { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
@@ -617,6 +620,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
             <g stroke="#cfd7d3" stroke-width="1"><line x1="40" y1="0" x2="40" y2="260"/><line x1="80" y1="0" x2="80" y2="260"/><line x1="120" y1="0" x2="120" y2="260"/><line x1="160" y1="0" x2="160" y2="260"/><line x1="200" y1="0" x2="200" y2="260"/><line x1="240" y1="0" x2="240" y2="260"/><line x1="280" y1="0" x2="280" y2="260"/><line x1="320" y1="0" x2="320" y2="260"/><line x1="0" y1="40" x2="360" y2="40"/><line x1="0" y1="80" x2="360" y2="80"/><line x1="0" y1="120" x2="360" y2="120"/><line x1="0" y1="160" x2="360" y2="160"/><line x1="0" y1="200" x2="360" y2="200"/><line x1="0" y1="240" x2="360" y2="240"/></g>
             <g id="tank" transform="translate(180 130)">
               <rect x="-36" y="-32" width="12" height="22" rx="3" fill="var(--o-rubber)"/><line class="tread-l" x1="-30" y1="-30" x2="-30" y2="-12" stroke="#9aa3a0" stroke-width="8" stroke-dasharray="2 4"/><rect x="-36" y="10" width="12" height="22" rx="3" fill="var(--o-rubber)"/><line class="tread-l" x1="-30" y1="12" x2="-30" y2="30" stroke="#9aa3a0" stroke-width="8" stroke-dasharray="2 4"/><rect x="24" y="-32" width="12" height="22" rx="3" fill="var(--o-rubber)"/><line class="tread-r" x1="30" y1="-30" x2="30" y2="-12" stroke="#9aa3a0" stroke-width="8" stroke-dasharray="2 4"/><rect x="24" y="10" width="12" height="22" rx="3" fill="var(--o-rubber)"/><line class="tread-r" x1="30" y1="12" x2="30" y2="30" stroke="#9aa3a0" stroke-width="8" stroke-dasharray="2 4"/>
+              <g id="turbo-fx" opacity="0" stroke="var(--o-orange)" stroke-width="3" stroke-linecap="round"><line x1="-14" y1="44" x2="-14" y2="64"/><line x1="0" y1="44" x2="0" y2="72"/><line x1="14" y1="44" x2="14" y2="64"/></g>
               <rect x="-24" y="-36" width="48" height="72" rx="8" fill="var(--o-acrylic)" stroke="var(--o-ink)" stroke-width="2"/>
               <rect x="-14" y="-6" width="28" height="22" rx="2" fill="var(--o-pcb-black)"/>
               <rect x="-14" y="-40" width="28" height="8" rx="2" fill="var(--o-pcb-blue)"/>
@@ -632,7 +636,11 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
           <button type="button" class="pbtn" data-move="spinR" aria-pressed="false">Pe loc, la dreapta</button>
           <button type="button" class="pbtn" data-move="stop" aria-pressed="true">Stop</button>
         </div>
+        <div class="btns"><button type="button" class="pbtn turbo" id="btn-turbo" aria-pressed="false">Turbo 4×4: oprit (60 %)</button></div>
         <p class="readout" id="tank-read" aria-live="polite">Toate roțile stau → robotul stă pe loc. Săgeata portocalie arată fața.</p>
+        <p class="note-turbo"><b>4×4 e mereu pornit:</b> la robotul nostru toate cele 4 roți au motor tot timpul (tracțiune integrală permanentă).
+          <b>Turbo</b> înseamnă doar că motoarele primesc tot curentul (100 %). În robotul adevărat programul pornește limitat la <b>60 %</b>,
+          ca să nu ardă siguranța și să nu treacă motoarele de 6 V. Cât turbo îi dăm (de exemplu 80 % pentru 2 secunde) hotărâm după Misiunea 8, când știm cât trag motoarele.</p>
       </div>
 
       <div class="demo">
@@ -1884,12 +1892,27 @@ const MISSIONS = [
     last: 0,
     raf: 0,
   };
-  const SPEED = 70; // px per second at full speed
+  const SPEED = 110; // px per second at 100 % PWM
   const TRACK = 64; // distance between left and right wheels, px
+  const NORMAL = 0.6; // the real firmware limit (MAX_SPEED_PERCENT)
+  let power = NORMAL;
+  let current = MOVES.stop;
+  const turboBtn = $("btn-turbo");
+  const turboFx = $("turbo-fx");
+
+  function describe() {
+    if (!read) return;
+    const pct = Math.round(power * 100);
+    const moving = sim.l || sim.r;
+    read.textContent = current.text + (moving
+      ? (power === 1 ? " Putere: 100 % · TURBO, toate cele 4 motoare la maxim." : " Putere: " + pct + " % · normal.")
+      : "");
+    if (turboFx) turboFx.setAttribute("opacity", power === 1 && moving ? "1" : "0");
+  }
 
   function step(dt) {
-    const vl = sim.l * SPEED;
-    const vr = sim.r * SPEED;
+    const vl = sim.l * SPEED * power;
+    const vr = sim.r * SPEED * power;
     const v = (vl + vr) / 2;
     sim.th += ((vl - vr) / TRACK) * dt;
     sim.x += v * Math.sin(sim.th) * dt;
@@ -1935,7 +1958,8 @@ const MISSIONS = [
       if (!m) return;
       sim.l = m.l;
       sim.r = m.r;
-      if (read) read.textContent = m.text;
+      current = m;
+      describe();
       document
         .querySelectorAll("[data-move]")
         .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
@@ -1950,6 +1974,14 @@ const MISSIONS = [
       }
     }),
   );
+  if (turboBtn) {
+    turboBtn.addEventListener("click", () => {
+      power = power === 1 ? NORMAL : 1;
+      turboBtn.setAttribute("aria-pressed", String(power === 1));
+      turboBtn.textContent = power === 1 ? "Turbo 4×4: pornit (100 %)" : "Turbo 4×4: oprit (60 %)";
+      describe();
+    });
+  }
   draw();
 
   // ---- "bat eyes" (ultrasonic) demo ----
