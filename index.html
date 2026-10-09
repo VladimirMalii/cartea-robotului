@@ -229,6 +229,8 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
 .pbtn.sw-black[aria-pressed="true"] { background: #1e1e1e; color: #ffffff; }
 .pbtn.sw-orange[aria-pressed="true"] { background: #e8792b; color: #1b1600; }
 .pbtn.sw-yellow[aria-pressed="true"] { background: #f2c230; color: #1b1600; }
+.pbtn.ws-go { background: var(--ok); color: #ffffff; border-color: transparent; }
+.ws-out li.d { color: var(--stop); font-weight: 600; }
 
 /* table of contents */
 .toc { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -845,15 +847,12 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     <div class="sec-head">
       <p class="eyebrow">Întâi digital, apoi real</p>
       <h2 id="h-ws">Atelierul virtual: exersează legăturile</h2>
-      <p class="lead">Leagă firele pe ecran înainte să le legi pe robot. Greșelile de aici nu ard nimic, iar simulatorul îți spune exact ce e greșit:
+      <p class="lead">Șapte niveluri, de la primul circuit până la <b>robotul întreg</b>: toate legăturile reale, cu toate piesele care se cablează.
+        Leagă firele pe ecran înainte să le legi pe robot. Greșelile de aici nu ard nimic, iar simulatorul îți spune exact ce e greșit:
         scurtcircuit, siguranță ocolită, condensator invers, semnal de 5 V pe pinul creierului.</p>
     </div>
     <div class="ws">
-      <div class="btns" role="group" aria-label="Nivelul">
-        <button type="button" class="pbtn" data-lvl="1" aria-pressed="true">1 · Primul circuit</button>
-        <button type="button" class="pbtn" data-lvl="2" aria-pressed="false">2 · Mușchiul și motorul</button>
-        <button type="button" class="pbtn" data-lvl="3" aria-pressed="false">3 · Creierul și ochii</button>
-      </div>
+      <div class="btns" role="group" aria-label="Nivelul" id="ws-levels"></div>
       <p class="ws-goal"><b>Ce ai de făcut:</b> <span id="ws-goal"></span></p>
       <div class="ws-tools">
         <span>Culoarea firului:</span>
@@ -870,6 +869,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
         <button type="button" class="pbtn" id="ws-check">Verifică legăturile</button>
         <button type="button" class="pbtn" id="ws-clear">Scoate firele</button>
         <button type="button" class="pbtn" id="ws-solve">Arată soluția</button>
+        <button type="button" class="pbtn ws-go" id="ws-drive" hidden>Pornește robotul în cameră →</button>
       </div>
       <div class="ws-out" id="ws-out" aria-live="polite"></div>
       <div class="ws-more">
@@ -2119,13 +2119,13 @@ const MISSIONS = [
       if (ai.t > 0.5) { ai.dir = Math.random() < 0.5 ? 1 : -1; go("turn"); }
     } else if (ai.state === "turn") {
       setWheels(ai.dir, -ai.dir, NORMAL);
-      if ((ai.t > 0.4 && s.cm > CLEAR_CM) || ai.t > 3) { ai.chkT = 0; ai.chkDist = s.cm; go("fwd"); }
+      if ((ai.t > (ai.minTurn || 0.4) && s.cm > CLEAR_CM) || ai.t > 3.5) { ai.chkT = 0; ai.chkDist = s.cm; ai.minTurn = 0.4; go("fwd"); }
     } else if (ai.state === "stuck") {
       setWheels(1, 1, NORMAL);
       if (ai.t > 0.6) { ai.tries += 1; ai.okT = 0; go(ai.tries > 3 ? "giveup" : "burst"); }
     } else if (ai.state === "burst") {
       setWheels(-1, -1, 1);
-      if (ai.t > 0.5) { ai.dir = Math.random() < 0.5 ? 1 : -1; go("turn"); }
+      if (ai.t > 0.5) { ai.dir = Math.random() < 0.5 ? 1 : -1; ai.minTurn = 1.5; go("turn"); }
     } else if (ai.state === "giveup") {
       setWheels(0, 0, NORMAL);
     }
@@ -2212,6 +2212,7 @@ const MISSIONS = [
     draw(null);
   }
   document.querySelectorAll("[data-drive]").forEach((b) => b.addEventListener("click", () => setDrive(b.dataset.drive)));
+  window.robotDrive = setDrive;
   const restart = $("btn-restart");
   if (restart) restart.addEventListener("click", () => startAuto());
 
@@ -2386,11 +2387,13 @@ const MISSIONS = [
   const $ = (id) => document.getElementById(id);
   const out = $("ws-out");
   const powerBtn = $("ws-power");
+  const driveBtn = $("ws-drive");
   const reduce =
     window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // ---- component drawings: each returns {svg, pins:{name:[dx,dy,label]}} ----
-  const C = {
+  // ---- parts: pins listed per side; the first two pins of a 2-pin part are its two ends ----
+  const P = (name, label) => [name, label || ""];
+  const DEF = {
     bat: {
       w: 150,
       h: 110,
@@ -2398,7 +2401,7 @@ const MISSIONS = [
       sub: "7,2 V",
       fill: "#232624",
       ink: "#ffffff",
-      pins: { plus: [150, 30, "+"], minus: [150, 80, "−"] },
+      right: [P("plus", "+"), P("minus", "−")],
     },
     fuse: {
       w: 120,
@@ -2407,40 +2410,110 @@ const MISSIONS = [
       sub: "3 A",
       fill: "#fbfbf7",
       ink: "#1b201e",
-      pins: { a: [0, 22, ""], b: [120, 22, ""] },
+      left: [P("a")],
+      right: [P("b")],
     },
     sw: {
       w: 120,
       h: 56,
       label: "Întrerupător",
-      sub: "",
       fill: "#fbfbf7",
       ink: "#1b201e",
-      pins: { a: [0, 28, ""], b: [120, 28, ""] },
+      left: [P("a")],
+      right: [P("b")],
+      isSwitch: true,
+    },
+    clp: {
+      w: 110,
+      h: 120,
+      label: "Clemă +",
+      fill: "#fbfbf7",
+      ink: "#1b201e",
+      left: [P("p1")],
+      right: [P("p2"), P("p3")],
+      bridge: ["p1", "p2", "p3"],
+    },
+    clm: {
+      w: 110,
+      h: 140,
+      label: "Clemă −",
+      fill: "#fbfbf7",
+      ink: "#1b201e",
+      left: [P("p1")],
+      right: [P("p2"), P("p3"), P("p4")],
+      bridge: ["p1", "p2", "p3", "p4"],
     },
     mot: {
-      w: 120,
-      h: 70,
+      w: 144,
+      h: 64,
       label: "Motor",
-      sub: "",
       fill: "#f2c230",
       ink: "#1b201e",
-      pins: { m1: [0, 22, ""], m2: [0, 50, ""] },
+      left: [P("m1"), P("m2")],
+      motor: true,
     },
-    l298: {
+    lpow: {
       w: 160,
-      h: 150,
-      label: "Mușchi L298N",
-      sub: "",
+      h: 170,
+      label: "Mușchi",
       fill: "#c8322b",
       ink: "#ffffff",
-      pins: {
-        vm: [0, 30, "12V (VM)"],
-        gnd: [0, 75, "GND"],
-        v5: [0, 120, "5V"],
-        out1: [160, 45, "OUT1"],
-        out2: [160, 95, "OUT2"],
-      },
+      left: [P("vm", "12V (VM)"), P("gnd", "GND"), P("v5", "5V")],
+      right: [
+        P("out1", "OUT1"),
+        P("out2", "OUT2"),
+        P("out3", "OUT3"),
+        P("out4", "OUT4"),
+      ],
+    },
+    lsmall: {
+      w: 160,
+      h: 150,
+      label: "Mușchi",
+      fill: "#c8322b",
+      ink: "#ffffff",
+      left: [P("vm", "12V (VM)"), P("gnd", "GND"), P("v5", "5V")],
+      right: [P("out1", "OUT1"), P("out2", "OUT2")],
+    },
+    lsig: {
+      w: 160,
+      h: 250,
+      label: "Mușchi",
+      fill: "#c8322b",
+      ink: "#ffffff",
+      left: [
+        P("ena", "ENA"),
+        P("in1", "IN1"),
+        P("in2", "IN2"),
+        P("in3", "IN3"),
+        P("in4", "IN4"),
+        P("enb", "ENB"),
+        P("gnd", "GND"),
+      ],
+    },
+    lfull: {
+      w: 170,
+      h: 330,
+      label: "Mușchi",
+      fill: "#c8322b",
+      ink: "#ffffff",
+      left: [
+        P("vm", "12V (VM)"),
+        P("gnd", "GND"),
+        P("v5", "5V"),
+        P("ena", "ENA"),
+        P("in1", "IN1"),
+        P("in2", "IN2"),
+        P("in3", "IN3"),
+        P("in4", "IN4"),
+        P("enb", "ENB"),
+      ],
+      right: [
+        P("out1", "OUT1"),
+        P("out2", "OUT2"),
+        P("out3", "OUT3"),
+        P("out4", "OUT4"),
+      ],
     },
     cap: {
       w: 90,
@@ -2449,123 +2522,566 @@ const MISSIONS = [
       sub: "dungă = −",
       fill: "#232624",
       ink: "#ffffff",
-      pins: { plus: [25, 0, "+"], minus: [65, 0, "−"] },
+      top: [P("plus", "+"), P("minus", "−")],
     },
-    esp: {
+    esp3: {
       w: 170,
       h: 120,
       label: "Creierul ESP32",
-      sub: "",
       fill: "#232624",
       ink: "#ffffff",
-      pins: {
-        vin: [0, 30, "VIN"],
-        gnd: [0, 85, "GND"],
-        g23: [170, 30, "GPIO23"],
-        g35: [170, 85, "GPIO35"],
-      },
+      left: [P("vin", "VIN"), P("gnd", "GND")],
+      right: [P("g23", "GPIO23"), P("g35", "GPIO35")],
+    },
+    espsig: {
+      w: 180,
+      h: 250,
+      label: "Creierul ESP32",
+      fill: "#232624",
+      ink: "#ffffff",
+      left: [P("gnd", "GND")],
+      right: [
+        P("g25", "GPIO25"),
+        P("g26", "GPIO26"),
+        P("g27", "GPIO27"),
+        P("g32", "GPIO32"),
+        P("g18", "GPIO18"),
+        P("g19", "GPIO19"),
+      ],
+    },
+    espbat: {
+      w: 170,
+      h: 110,
+      label: "Creierul ESP32",
+      fill: "#232624",
+      ink: "#ffffff",
+      left: [P("g34", "GPIO34"), P("gnd", "GND")],
+    },
+    espfull: {
+      w: 190,
+      h: 330,
+      label: "Creierul ESP32",
+      fill: "#232624",
+      ink: "#ffffff",
+      left: [
+        P("vin", "VIN"),
+        P("gnd", "GND"),
+        P("g34", "GPIO34"),
+        P("g35", "GPIO35"),
+        P("g23", "GPIO23"),
+      ],
+      right: [
+        P("g25", "GPIO25"),
+        P("g26", "GPIO26"),
+        P("g27", "GPIO27"),
+        P("g32", "GPIO32"),
+        P("g18", "GPIO18"),
+        P("g19", "GPIO19"),
+      ],
     },
     hc: {
       w: 170,
-      h: 120,
+      h: 130,
       label: "Ochii HC-SR04",
-      sub: "",
       fill: "#1e5fae",
       ink: "#ffffff",
-      pins: {
-        vcc: [0, 25, "VCC"],
-        trig: [0, 52, "TRIG"],
-        echo: [0, 79, "ECHO"],
-        gnd: [0, 106, "GND"],
-      },
+      left: [
+        P("vcc", "VCC"),
+        P("trig", "TRIG"),
+        P("echo", "ECHO"),
+        P("gnd", "GND"),
+      ],
     },
-    r22: {
+    hcr: {
+      w: 160,
+      h: 130,
+      label: "Ochii HC-SR04",
+      fill: "#1e5fae",
+      ink: "#ffffff",
+      right: [
+        P("vcc", "VCC"),
+        P("trig", "TRIG"),
+        P("echo", "ECHO"),
+        P("gnd", "GND"),
+      ],
+    },
+    res: {
       w: 110,
       h: 36,
-      label: "2,2 kΩ",
-      sub: "",
+      label: "R",
       fill: "#4f8fd6",
       ink: "#ffffff",
-      pins: { a: [0, 18, ""], b: [110, 18, ""] },
-    },
-    r33: {
-      w: 110,
-      h: 36,
-      label: "3,3 kΩ",
-      sub: "",
-      fill: "#4f8fd6",
-      ink: "#ffffff",
-      pins: { a: [0, 18, ""], b: [110, 18, ""] },
+      left: [P("a")],
+      right: [P("b")],
     },
   };
 
+  // ---- rules (one vocabulary for every level) ----
+  const chainPlus = (end) => ({
+    t: "chain",
+    start: "bat.plus",
+    parts: [
+      ["fuse", "Siguranța"],
+      ["sw", "Întrerupătorul"],
+    ],
+    end,
+  });
+  const R = {
+    power4: [
+      chainPlus("clp.p1"),
+      {
+        t: "same",
+        terms: ["clp.p1", "m1.vm", "m2.vm"],
+        msg: "Plusul de la clema + merge la 12V (VM) pe ambii mușchi.",
+      },
+      {
+        t: "same",
+        terms: ["bat.minus", "clm.p1", "m1.gnd", "m2.gnd"],
+        msg: "Minusul bateriilor merge la clema −, iar de acolo la GND pe ambii mușchi.",
+      },
+      { t: "polar", part: "cap", plus: "m1.vm", minus: "m1.gnd" },
+      {
+        t: "pair",
+        part: "fs",
+        terms: ["m1.out1", "m1.out2"],
+        msg: "Motorul față-stânga merge la OUT1 și OUT2 pe mușchiul stânga.",
+      },
+      {
+        t: "pair",
+        part: "ss",
+        terms: ["m1.out3", "m1.out4"],
+        msg: "Motorul spate-stânga merge la OUT3 și OUT4 pe mușchiul stânga.",
+      },
+      {
+        t: "pair",
+        part: "fd",
+        terms: ["m2.out1", "m2.out2"],
+        msg: "Motorul față-dreapta merge la OUT1 și OUT2 pe mușchiul dreapta.",
+      },
+      {
+        t: "pair",
+        part: "sd",
+        terms: ["m2.out3", "m2.out4"],
+        msg: "Motorul spate-dreapta merge la OUT3 și OUT4 pe mușchiul dreapta.",
+      },
+      {
+        t: "free",
+        term: "m2.v5",
+        msg: "PERICOL: 5V-ul mușchiului dreapta trebuie să rămână liber. Două surse de 5 V legate împreună se „ceartă” și se pot strica.",
+      },
+    ],
+    signals: [
+      {
+        t: "same",
+        terms: ["esp.g25", "m1.ena", "m1.enb"],
+        msg: "GPIO25 (viteza stânga) → ENA și ENB pe mușchiul stânga.",
+      },
+      {
+        t: "same",
+        terms: ["esp.g26", "m1.in1", "m1.in3"],
+        msg: "GPIO26 → IN1 și IN3 pe mușchiul stânga.",
+      },
+      {
+        t: "same",
+        terms: ["esp.g27", "m1.in2", "m1.in4"],
+        msg: "GPIO27 → IN2 și IN4 pe mușchiul stânga.",
+      },
+      {
+        t: "same",
+        terms: ["esp.g32", "m2.ena", "m2.enb"],
+        msg: "GPIO32 (viteza dreapta) → ENA și ENB pe mușchiul dreapta.",
+      },
+      {
+        t: "same",
+        terms: ["esp.g18", "m2.in1", "m2.in3"],
+        msg: "GPIO18 → IN1 și IN3 pe mușchiul dreapta.",
+      },
+      {
+        t: "same",
+        terms: ["esp.g19", "m2.in2", "m2.in4"],
+        msg: "GPIO19 → IN2 și IN4 pe mușchiul dreapta.",
+      },
+      {
+        t: "distinct",
+        terms: [
+          "esp.g25",
+          "esp.g26",
+          "esp.g27",
+          "esp.g32",
+          "esp.g18",
+          "esp.g19",
+          "esp.gnd",
+        ],
+        msg: "Două comenzi diferite sunt legate între ele. Fiecare pin al creierului are drumul lui.",
+      },
+    ],
+    gndSig: [
+      {
+        t: "same",
+        terms: ["esp.gnd", "m1.gnd", "m2.gnd"],
+        msg: "GND comun: creierul și ambii mușchi au minusul legat împreună, altfel nu se înțeleg.",
+      },
+    ],
+    eyes: [
+      {
+        t: "never",
+        a: "esp.g35",
+        b: "hc.echo",
+        msg: "PERICOL: ECHO direct pe GPIO35! Ochii trimit 5 V, creierul suportă cel mult 3,6 V. Pinul s-ar arde. ECHO trece prin 2,2 kΩ.",
+      },
+      {
+        t: "never",
+        a: "m1.v5",
+        b: "esp.g35",
+        msg: "PERICOL: 5 V pe un pin GPIO al creierului. Se arde.",
+      },
+      {
+        t: "never",
+        a: "m1.v5",
+        b: "esp.g23",
+        msg: "PERICOL: 5 V pe un pin GPIO al creierului. Se arde.",
+      },
+      {
+        t: "same",
+        terms: ["m1.v5", "esp.vin", "hc.vcc"],
+        msg: "Creierul (VIN) și ochii (VCC) iau 5 V de la mușchiul stânga.",
+      },
+      {
+        t: "same",
+        terms: ["m1.gnd", "esp.gnd", "hc.gnd"],
+        msg: "GND comun pentru mușchi, creier și ochi.",
+      },
+      {
+        t: "same",
+        terms: ["hc.trig", "esp.g23"],
+        msg: "TRIG merge la GPIO23 (creierul le spune ochilor „trimite un sunet”).",
+      },
+      {
+        t: "nbetween",
+        part: "r2",
+        a: "hc.echo",
+        b: "esp.g35",
+        msg: "Ai inversat rezistențele de la ochi: sus (de la ECHO) vine 2,2 kΩ, jos (spre GND) 3,3 kΩ. Altfel ajung doar ~2 V și creierul s-ar putea să nu „audă” ecoul.",
+      },
+      {
+        t: "between",
+        part: "r1",
+        a: "hc.echo",
+        b: "esp.g35",
+        msg: "Rezistența de 2,2 kΩ stă între ECHO și GPIO35.",
+      },
+      {
+        t: "between",
+        part: "r2",
+        a: "esp.g35",
+        b: "m1.gnd",
+        msg: "Rezistența de 3,3 kΩ stă între GPIO35 și GND. Cele două fac împreună un „împărțitor” care coboară 5 V la 3 V.",
+      },
+    ],
+    battery: [
+      {
+        t: "never",
+        a: "esp.g34",
+        b: "clp.p1",
+        msg: "PERICOL: plusul bateriilor (până la 8,4 V) direct pe GPIO34! Pinul s-ar arde. Trece prin 10 kΩ.",
+      },
+      {
+        t: "nbetween",
+        part: "r4",
+        a: "clp.p1",
+        b: "esp.g34",
+        msg: "PERICOL: rezistențele de la baterie sunt inversate. Așa ajung ~5,7 V pe GPIO34 și pinul se arde. Sus (de la plus) vine 10 kΩ, jos (spre minus) 4,7 kΩ.",
+      },
+      {
+        t: "warnpos",
+        part: "r3",
+        term: "bat.plus",
+        msg: "Paznicul bateriei se leagă DUPĂ întrerupător (la clema +). Pus înainte, golește bateriile și când robotul e oprit și nu mai e protejat de siguranță.",
+      },
+      {
+        t: "between",
+        part: "r3",
+        a: "clp.p1",
+        b: "esp.g34",
+        msg: "10 kΩ: de la clema + (după întrerupător) la GPIO34.",
+      },
+      {
+        t: "between",
+        part: "r4",
+        a: "esp.g34",
+        b: "clm.p1",
+        msg: "4,7 kΩ: de la GPIO34 la clema −.",
+      },
+      {
+        t: "same",
+        terms: ["esp.gnd", "clm.p1"],
+        msg: "GND-ul creierului se leagă la clema − (minus comun).",
+      },
+    ],
+  };
+
   // ---- levels ----
+  const W = (a, b, c) => [a, b, c];
+  const S = {
+    power4: [
+      W("bat.plus", "fuse.a", "red"),
+      W("fuse.b", "sw.a", "red"),
+      W("sw.b", "clp.p1", "red"),
+      W("clp.p2", "m1.vm", "red"),
+      W("clp.p3", "m2.vm", "red"),
+      W("bat.minus", "clm.p1", "black"),
+      W("clm.p2", "m1.gnd", "black"),
+      W("clm.p3", "m2.gnd", "black"),
+      W("cap.plus", "m1.vm", "red"),
+      W("cap.minus", "m1.gnd", "black"),
+      W("m1.out1", "fs.m1", "red"),
+      W("m1.out2", "fs.m2", "black"),
+      W("m1.out3", "ss.m1", "red"),
+      W("m1.out4", "ss.m2", "black"),
+      W("m2.out1", "fd.m1", "red"),
+      W("m2.out2", "fd.m2", "black"),
+      W("m2.out3", "sd.m1", "red"),
+      W("m2.out4", "sd.m2", "black"),
+    ],
+    signals: [
+      W("esp.g25", "m1.ena", "yellow"),
+      W("esp.g25", "m1.enb", "yellow"),
+      W("esp.g26", "m1.in1", "yellow"),
+      W("esp.g26", "m1.in3", "yellow"),
+      W("esp.g27", "m1.in2", "yellow"),
+      W("esp.g27", "m1.in4", "yellow"),
+      W("esp.g32", "m2.ena", "yellow"),
+      W("esp.g32", "m2.enb", "yellow"),
+      W("esp.g18", "m2.in1", "yellow"),
+      W("esp.g18", "m2.in3", "yellow"),
+      W("esp.g19", "m2.in2", "yellow"),
+      W("esp.g19", "m2.in4", "yellow"),
+    ],
+    eyes: [
+      W("m1.v5", "esp.vin", "orange"),
+      W("m1.v5", "hc.vcc", "orange"),
+      W("esp.gnd", "m1.gnd", "black"),
+      W("hc.gnd", "m1.gnd", "black"),
+      W("esp.g23", "hc.trig", "yellow"),
+      W("hc.echo", "r1.a", "yellow"),
+      W("r1.b", "esp.g35", "yellow"),
+      W("esp.g35", "r2.a", "yellow"),
+      W("r2.b", "m1.gnd", "black"),
+    ],
+    battery: [
+      W("clp.p1", "r3.a", "red"),
+      W("r3.b", "esp.g34", "yellow"),
+      W("esp.g34", "r4.a", "yellow"),
+      W("r4.b", "clm.p1", "black"),
+      W("esp.gnd", "clm.p1", "black"),
+    ],
+  };
   const LEVELS = [
     {
       id: 1,
       title: "Primul circuit",
+      view: [960, 440],
       goal: "Leagă bateriile → siguranța → întrerupătorul → motorul → înapoi la minusul bateriilor. Apoi pornește întrerupătorul.",
       parts: [
         ["bat", "bat", 30, 150],
         ["fuse", "fuse", 260, 80],
         ["sw", "sw", 470, 80],
-        ["mot", "mot", 700, 200],
+        ["mot", "mot", 700, 200, "Motor"],
+      ],
+      rules: [
+        {
+          t: "chain",
+          start: "bat.plus",
+          parts: [
+            ["fuse", "Siguranța"],
+            ["sw", "Întrerupătorul"],
+            ["mot", "Motorul"],
+          ],
+          end: "bat.minus",
+        },
       ],
       solution: [
-        ["bat.plus", "fuse.a", "red"],
-        ["fuse.b", "sw.a", "red"],
-        ["sw.b", "mot.m1", "red"],
-        ["mot.m2", "bat.minus", "black"],
+        W("bat.plus", "fuse.a", "red"),
+        W("fuse.b", "sw.a", "red"),
+        W("sw.b", "mot.m1", "red"),
+        W("mot.m2", "bat.minus", "black"),
       ],
-      hasSwitch: true,
+      shorts: [["bat.plus", "bat.minus"]],
+      ok: "Motorul se învârte! Curentul pleacă din plus, trece prin siguranță și întrerupător, învârte motorul și se întoarce la minus.",
     },
     {
       id: 2,
       title: "Mușchiul și motorul",
+      view: [960, 440],
       goal: "Plusul trece prin siguranță și întrerupător la 12V (VM). Minusul merge la GND. Condensatorul între VM și GND, cu dunga la minus. Motorul la OUT1 și OUT2.",
       parts: [
         ["bat", "bat", 20, 230],
         ["fuse", "fuse", 220, 60],
         ["sw", "sw", 400, 60],
-        ["l298", "mus", 600, 150],
+        ["lsmall", "m1", 600, 140, "Mușchi stânga"],
         ["cap", "cap", 360, 300],
-        ["mot", "mot", 820, 160],
+        ["mot", "fs", 800, 160, "Motor"],
+      ],
+      rules: [
+        chainPlus("m1.vm"),
+        {
+          t: "same",
+          terms: ["bat.minus", "m1.gnd"],
+          msg: "Minusul bateriilor trebuie să ajungă la GND pe mușchi.",
+        },
+        { t: "polar", part: "cap", plus: "m1.vm", minus: "m1.gnd" },
+        {
+          t: "pair",
+          part: "fs",
+          terms: ["m1.out1", "m1.out2"],
+          msg: "Motorul se leagă la OUT1 și OUT2 (sensul nu contează aici).",
+        },
       ],
       solution: [
-        ["bat.plus", "fuse.a", "red"],
-        ["fuse.b", "sw.a", "red"],
-        ["sw.b", "mus.vm", "red"],
-        ["bat.minus", "mus.gnd", "black"],
-        ["cap.plus", "mus.vm", "red"],
-        ["cap.minus", "mus.gnd", "black"],
-        ["mus.out1", "mot.m1", "red"],
-        ["mus.out2", "mot.m2", "black"],
+        W("bat.plus", "fuse.a", "red"),
+        W("fuse.b", "sw.a", "red"),
+        W("sw.b", "m1.vm", "red"),
+        W("bat.minus", "m1.gnd", "black"),
+        W("cap.plus", "m1.vm", "red"),
+        W("cap.minus", "m1.gnd", "black"),
+        W("m1.out1", "fs.m1", "red"),
+        W("m1.out2", "fs.m2", "black"),
       ],
-      hasSwitch: true,
+      shorts: [["bat.plus", "bat.minus"]],
+      ok: "Motorul se învârte, comandat de mușchi.",
     },
     {
       id: 3,
       title: "Creierul și ochii",
+      view: [960, 440],
       goal: "5V de la mușchi la VIN (creier) și VCC (ochi). GND la toți trei. TRIG la GPIO23. ECHO trece prin 2,2 kΩ la GPIO35, iar de acolo 3,3 kΩ merge la GND.",
       parts: [
-        ["l298", "mus", 20, 120],
-        ["esp", "esp", 330, 40],
+        ["lsmall", "m1", 20, 120, "Mușchi stânga"],
+        ["esp3", "esp", 330, 40],
         ["hc", "hc", 760, 120],
-        ["r22", "r1", 560, 300],
-        ["r33", "r2", 330, 330],
+        ["res", "r1", 560, 300, "2,2 kΩ"],
+        ["res", "r2", 330, 330, "3,3 kΩ"],
       ],
-      solution: [
-        ["mus.v5", "esp.vin", "orange"],
-        ["mus.v5", "hc.vcc", "orange"],
-        ["mus.gnd", "esp.gnd", "black"],
-        ["mus.gnd", "hc.gnd", "black"],
-        ["esp.g23", "hc.trig", "yellow"],
-        ["hc.echo", "r1.b", "yellow"],
-        ["r1.a", "esp.g35", "yellow"],
-        ["esp.g35", "r2.b", "yellow"],
-        ["r2.a", "mus.gnd", "black"],
+      rules: R.eyes,
+      solution: S.eyes,
+      shorts: [["m1.v5", "m1.gnd"]],
+      ok: "Creierul și ochii au curent, iar ecoul ajunge la creier ca 3 V, sigur pentru pin. Ochii măsoară: 37 cm.",
+    },
+    {
+      id: 4,
+      title: "Doi mușchi, 4 motoare",
+      view: [1180, 640],
+      goal: "Plusul: baterii → siguranță → întrerupător → clema +, apoi la 12V pe ambii mușchi. Minusul: baterii → clema −, apoi la GND pe ambii. Condensatorul între 12V și GND. Fiecare motor la ieșirile lui. 5V-ul mușchiului dreapta rămâne liber.",
+      parts: [
+        ["bat", "bat", 20, 40],
+        ["fuse", "fuse", 220, 40],
+        ["sw", "sw", 380, 36],
+        ["clp", "clp", 560, 30],
+        ["clm", "clm", 560, 420],
+        ["cap", "cap", 380, 230],
+        ["lpow", "m1", 760, 30, "Mușchi stânga #1"],
+        ["lpow", "m2", 760, 360, "Mușchi dreapta #2"],
+        ["mot", "fs", 1020, 20, "Față-stânga"],
+        ["mot", "ss", 1020, 140, "Spate-stânga"],
+        ["mot", "fd", 1020, 350, "Față-dreapta"],
+        ["mot", "sd", 1020, 470, "Spate-dreapta"],
       ],
-      hasSwitch: false,
+      rules: R.power4,
+      solution: S.power4,
+      shorts: [["bat.plus", "bat.minus"]],
+      minW: 900,
+      ok: "Toate cele 4 motoare se învârt. Asta e partea de putere a robotului (Misiunea 9a–9b).",
+    },
+    {
+      id: 5,
+      title: "Comenzile",
+      view: [1000, 560],
+      goal: "Fiecare pin al creierului comandă DOUĂ intrări pe mușchiul lui: GPIO25 → ENA+ENB, GPIO26 → IN1+IN3, GPIO27 → IN2+IN4 (stânga); GPIO32, GPIO18, GPIO19 la fel pe dreapta. Plus GND comun.",
+      parts: [
+        ["espsig", "esp", 330, 150],
+        ["lsig", "m1", 760, 20, "Mușchi stânga #1"],
+        ["lsig", "m2", 760, 290, "Mușchi dreapta #2"],
+      ],
+      rules: R.gndSig.concat(R.signals),
+      solution: S.signals.concat([
+        W("esp.gnd", "m1.gnd", "black"),
+        W("esp.gnd", "m2.gnd", "black"),
+      ]),
+      shorts: [],
+      minW: 800,
+      ok: "Comenzile sunt legate. Pe robot, „dublarea” se face pe placa cu găurele: firul de la creier intră într-un rând, iar din același rând pleacă două fire spre mușchi.",
+    },
+    {
+      id: 6,
+      title: "Paznicul bateriei",
+      view: [960, 460],
+      goal: "Creierul „citește” cât de plină e bateria prin două rezistențe: 10 kΩ de la clema + la GPIO34, 4,7 kΩ de la GPIO34 la clema −. Plus GND comun. Firele gri sunt deja puse.",
+      parts: [
+        ["bat", "bat", 20, 40],
+        ["fuse", "fuse", 220, 40],
+        ["sw", "sw", 380, 36],
+        ["clp", "clp", 560, 30],
+        ["clm", "clm", 560, 290],
+        ["res", "r3", 300, 230, "10 kΩ"],
+        ["res", "r4", 300, 330, "4,7 kΩ"],
+        ["espbat", "esp", 760, 200],
+      ],
+      fixed: [
+        W("bat.plus", "fuse.a", "red"),
+        W("fuse.b", "sw.a", "red"),
+        W("sw.b", "clp.p1", "red"),
+        W("bat.minus", "clm.p1", "black"),
+      ],
+      rules: R.battery,
+      solution: S.battery,
+      shorts: [["bat.plus", "bat.minus"]],
+      ok: "Paznicul e pus: la 8,4 V (baterii pline) ajung pe GPIO34 doar 2,7 V, sigur pentru pin. Creierul știe când bateria e pe terminate și oprește robotul.",
+    },
+    {
+      id: 7,
+      title: "Robotul întreg",
+      view: [1300, 900],
+      goal: "Tot robotul, toate legăturile din nivelurile 2–6 laolaltă. Când e totul corect, pornește întrerupătorul și apoi robotul în cameră.",
+      parts: [
+        ["bat", "bat", 20, 30],
+        ["fuse", "fuse", 220, 30],
+        ["sw", "sw", 380, 26],
+        ["clp", "clp", 560, 20],
+        ["clm", "clm", 640, 740],
+        ["cap", "cap", 400, 170],
+        ["res", "r3", 200, 260, "10 kΩ"],
+        ["res", "r4", 200, 330, "4,7 kΩ"],
+        ["lfull", "m1", 800, 20, "Mușchi stânga #1"],
+        ["lfull", "m2", 800, 470, "Mușchi dreapta #2"],
+        ["mot", "fs", 1120, 40, "Față-stânga"],
+        ["mot", "ss", 1120, 200, "Spate-stânga"],
+        ["mot", "fd", 1120, 490, "Față-dreapta"],
+        ["mot", "sd", 1120, 650, "Spate-dreapta"],
+        ["espfull", "esp", 400, 420],
+        ["hcr", "hc", 20, 520],
+        ["res", "r1", 220, 700, "2,2 kΩ"],
+        ["res", "r2", 220, 790, "3,3 kΩ"],
+      ],
+      rules: [].concat(R.power4, R.eyes, R.signals, R.battery, [
+        {
+          t: "same",
+          terms: ["esp.gnd", "m1.gnd", "m2.gnd", "clm.p1"],
+          msg: "GND comun: minusul bateriilor, ambii mușchi, creierul și ochii, toți legați împreună.",
+        },
+      ]),
+      solution: [].concat(
+        S.power4,
+        S.signals,
+        S.eyes,
+        S.battery.filter((w) => !(w[0] === "esp.gnd" && w[1] === "clm.p1")),
+      ),
+      shorts: [
+        ["bat.plus", "bat.minus"],
+        ["m1.v5", "m1.gnd"],
+      ],
+      minW: 1000,
+      final: true,
+      ok: "Robotul e cablat complet și corect! Apasă „Pornește robotul în cameră” și uită-te cum ocolește singur obstacolele.",
     },
   ];
   const COLORS = {
@@ -2573,6 +3089,13 @@ const MISSIONS = [
     black: "#1e1e1e",
     orange: "#e8792b",
     yellow: "#d9a400",
+    fixed: "#8f9995",
+  };
+  const COLOR_NAME = {
+    red: "roșu",
+    black: "negru",
+    orange: "portocaliu",
+    yellow: "galben",
   };
 
   let level = LEVELS[0];
@@ -2580,7 +3103,10 @@ const MISSIONS = [
   let selected = null;
   let color = "red";
   let switchOn = false;
-  const pos = {}; // terminal id -> [x, y]
+  let running = false;
+  let pos = {};
+  let pinsOf = {};
+  let labelOf = {};
 
   function el(tag, attrs, parent) {
     const e = document.createElementNS(NS, tag);
@@ -2588,15 +3114,66 @@ const MISSIONS = [
     if (parent) parent.appendChild(e);
     return e;
   }
+  function text(parent, x, y, s, o) {
+    const t = el(
+      "text",
+      Object.assign(
+        {
+          x,
+          y,
+          "font-family": "Lexend, sans-serif",
+          "font-size": 13,
+          "font-weight": 600,
+        },
+        o || {},
+      ),
+      parent,
+    );
+    t.textContent = s;
+    return t;
+  }
+  const allWires = () =>
+    (level.fixed || [])
+      .map(([a, b, c]) => ({ a, b, c, fixed: true, real: c }))
+      .concat(wires);
+
+  function layout() {
+    pos = {};
+    pinsOf = {};
+    labelOf = {};
+    level.parts.forEach(([type, id, x, y, label]) => {
+      const d = DEF[type];
+      labelOf[id] = label || d.label;
+      pinsOf[id] = [];
+      const sides = {
+        left: d.left || [],
+        right: d.right || [],
+        top: d.top || [],
+      };
+      Object.keys(sides).forEach((side) => {
+        const list = sides[side];
+        list.forEach(([pin], i) => {
+          const along = (i + 1) / (list.length + 1);
+          const px =
+            side === "left" ? x : side === "right" ? x + d.w : x + d.w * along;
+          const py = side === "top" ? y : y + d.h * along;
+          pos[id + "." + pin] = [px, py, side];
+          pinsOf[id].push(id + "." + pin);
+        });
+      });
+    });
+  }
 
   function render() {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
-    el("rect", { width: 960, height: 440, fill: "var(--paper)" }, svg);
+    const [vw, vh] = level.view;
+    svg.setAttribute("viewBox", "0 0 " + vw + " " + vh);
+    svg.style.minWidth = (level.minW || 720) + "px";
+    el("rect", { width: vw, height: vh, fill: "var(--paper)" }, svg);
     const gWires = el("g", {}, svg);
     const gParts = el("g", {}, svg);
-    Object.keys(pos).forEach((k) => delete pos[k]);
     level.parts.forEach(([type, id, x, y]) => {
-      const d = C[type];
+      const d = DEF[type];
       const g = el(
         "g",
         { transform: "translate(" + x + " " + y + ")" },
@@ -2614,131 +3191,125 @@ const MISSIONS = [
         },
         g,
       );
-      const t = el(
-        "text",
-        {
-          x: d.w / 2,
-          y: d.h / 2 - (d.sub ? 2 : -5),
+      const midY = d.top ? d.h / 2 + 10 : d.h / 2;
+      text(g, d.motor ? (d.w - 34) / 2 : d.w / 2, midY - (d.sub ? 3 : -5), labelOf[id], {
+        "text-anchor": "middle",
+        "font-size": 14,
+        "font-weight": 700,
+        fill: d.ink,
+      });
+      if (d.sub)
+        text(g, d.w / 2, midY + 15, d.sub, {
           "text-anchor": "middle",
-          "font-family": "Lexend, sans-serif",
-          "font-size": 14,
-          "font-weight": 700,
+          "font-size": 12,
+          "font-weight": 500,
           fill: d.ink,
-        },
-        g,
-      );
-      t.textContent = d.label;
-      if (d.sub) {
-        const s = el(
-          "text",
-          {
-            x: d.w / 2,
-            y: d.h / 2 + 16,
-            "text-anchor": "middle",
-            "font-family": "Lexend, sans-serif",
-            "font-size": 12,
-            fill: d.ink,
-          },
-          g,
-        );
-        s.textContent = d.sub;
-      }
-      if (type === "sw") {
-        const st = el(
-          "text",
-          {
-            x: d.w / 2,
-            y: d.h - 8,
-            "text-anchor": "middle",
-            "font-family": "JetBrains Mono, monospace",
-            "font-size": 12,
-            "font-weight": 700,
-            fill: switchOn ? "#1d7748" : "#bf3428",
-          },
-          g,
-        );
-        st.textContent = switchOn ? "I (pornit)" : "O (oprit)";
-      }
-      if (type === "mot") {
+        });
+      if (d.isSwitch)
+        text(g, d.w / 2, d.h - 8, switchOn ? "I (pornit)" : "O (oprit)", {
+          "text-anchor": "middle",
+          "font-size": 12,
+          "font-family": "JetBrains Mono, monospace",
+          fill: switchOn ? "#1d7748" : "#bf3428",
+        });
+      if (d.motor) {
         const sp = el(
           "g",
           {
-            class: "ws-spin" + (level.running ? " on" : ""),
-            transform: "translate(" + (d.w - 24) + " " + d.h / 2 + ")",
+            class: "ws-spin" + (running ? " on" : ""),
+            transform: "translate(" + (d.w - 22) + " " + d.h / 2 + ")",
           },
           g,
         );
         el(
           "circle",
-          { r: 12, fill: "none", stroke: "#1b201e", "stroke-width": 2 },
+          { r: 11, fill: "none", stroke: "#1b201e", "stroke-width": 2 },
           sp,
         );
         el(
           "path",
-          { d: "M-12 0 H12 M0 -12 V12", stroke: "#1b201e", "stroke-width": 2 },
+          { d: "M-11 0 H11 M0 -11 V11", stroke: "#1b201e", "stroke-width": 2 },
           sp,
         );
       }
-      Object.keys(d.pins).forEach((p) => {
-        const [dx, dy, lbl] = d.pins[p];
-        const tid = id + "." + p;
-        pos[tid] = [x + dx, y + dy];
-        if (lbl) {
-          const left = dx === 0;
-          const top = dy === 0;
-          const lt = el(
-            "text",
-            {
-              x: top ? dx : dx + (left ? 14 : -14),
-              y: top ? dy + 22 : dy + 4,
-              "text-anchor": top ? "middle" : left ? "start" : "end",
-              "font-family": "JetBrains Mono, monospace",
-              "font-size": 11,
-              "font-weight": 700,
-              fill: d.ink,
-            },
-            g,
-          );
-          lt.textContent = lbl;
-        }
-      });
+      ["left", "right", "top"].forEach((side) =>
+        (d[side] || []).forEach(([pin, lbl]) => {
+          if (!lbl) return;
+          const [px, py] = pos[id + "." + pin];
+          const lx =
+            side === "left"
+              ? px - x + 12
+              : side === "right"
+                ? px - x - 12
+                : px - x;
+          const ly = side === "top" ? 20 : py - y + 4;
+          text(g, lx, ly, lbl, {
+            "text-anchor":
+              side === "left" ? "start" : side === "right" ? "end" : "middle",
+            "font-size": 11,
+            "font-family": "JetBrains Mono, monospace",
+            "font-weight": 700,
+            fill: d.ink,
+          });
+        }),
+      );
     });
-    wires.forEach((w, i) => {
-      const [x1, y1] = pos[w.a];
-      const [x2, y2] = pos[w.b];
-      const mx = (x1 + x2) / 2;
-      const my = Math.max(y1, y2) + 30;
+    allWires().forEach((w) => {
+      const [x1, y1, s1] = pos[w.a];
+      const [x2, y2, s2] = pos[w.b];
+      const k = Math.max(40, Math.abs(x2 - x1) * 0.35);
+      const c1x = s1 === "left" ? x1 - k : s1 === "right" ? x1 + k : x1;
+      const c1y = s1 === "top" ? y1 - k : y1;
+      const c2x = s2 === "left" ? x2 - k : s2 === "right" ? x2 + k : x2;
+      const c2y = s2 === "top" ? y2 - k : y2;
       const dPath =
-        "M" + x1 + " " + y1 + " Q" + mx + " " + my + " " + x2 + " " + y2;
+        "M" +
+        x1 +
+        " " +
+        y1 +
+        " C" +
+        c1x +
+        " " +
+        c1y +
+        " " +
+        c2x +
+        " " +
+        c2y +
+        " " +
+        x2 +
+        " " +
+        y2;
       el(
         "path",
         {
           d: dPath,
           fill: "none",
-          stroke: COLORS[w.c],
-          "stroke-width": 5,
+          stroke: w.fixed ? COLORS.fixed : COLORS[w.c],
+          "stroke-width": 4.5,
           "stroke-linecap": "round",
-          class: "ws-wire" + (level.running && w.c !== "yellow" ? " live" : ""),
+          opacity: w.fixed ? 0.8 : 1,
+          class: "ws-wire" + (running && w.c !== "yellow" ? " live" : ""),
         },
         gWires,
       );
+      if (w.fixed) return;
       const hit = el(
         "path",
         {
           d: dPath,
           fill: "none",
           stroke: "transparent",
-          "stroke-width": 16,
+          "stroke-width": 14,
           class: "ws-hit",
           tabindex: 0,
           role: "button",
-          "aria-label": "Șterge firul " + w.a + " – " + w.b,
+          "aria-label": "Șterge firul " + nice(w.a) + " – " + nice(w.b),
         },
         gWires,
       );
       const del = () => {
-        wires.splice(i, 1);
-        stopRun();
+        wires = wires.filter((x) => x !== w);
+        running = false;
         render();
         say("Fir șters.", "");
       };
@@ -2758,17 +3329,18 @@ const MISSIONS = [
           class: "ws-term" + (selected === tid ? " sel" : ""),
           tabindex: 0,
           role: "button",
-          "aria-label": "Borna " + tid,
+          "aria-label": "Borna " + nice(tid),
+        "data-tid": tid,
         },
         gParts,
       );
-      el("circle", { cx: x, cy: y, r: 16, fill: "transparent" }, g);
+      el("circle", { cx: x, cy: y, r: 14, fill: "transparent" }, g);
       el(
         "circle",
         {
           cx: x,
           cy: y,
-          r: 8,
+          r: 7,
           fill: "#bcc3c6",
           stroke: "#1b201e",
           "stroke-width": 2,
@@ -2786,6 +3358,48 @@ const MISSIONS = [
     });
   }
 
+  const PIN_NAME = {
+    plus: "+",
+    minus: "−",
+    a: "capătul stâng",
+    b: "capătul drept",
+    p1: "intrare",
+    p2: "ieșire 1",
+    p3: "ieșire 2",
+    p4: "ieșire 3",
+    m1: "borna de sus",
+    m2: "borna de jos",
+    vm: "12V",
+    gnd: "GND",
+    v5: "5V",
+    out1: "OUT1",
+    out2: "OUT2",
+    out3: "OUT3",
+    out4: "OUT4",
+    ena: "ENA",
+    enb: "ENB",
+    in1: "IN1",
+    in2: "IN2",
+    in3: "IN3",
+    in4: "IN4",
+    vin: "VIN",
+    g23: "GPIO23",
+    g25: "GPIO25",
+    g26: "GPIO26",
+    g27: "GPIO27",
+    g32: "GPIO32",
+    g18: "GPIO18",
+    g19: "GPIO19",
+    g34: "GPIO34",
+    g35: "GPIO35",
+    vcc: "VCC",
+    trig: "TRIG",
+    echo: "ECHO",
+  };
+  function nice(tid) {
+    const [id, pin] = tid.split(".");
+    return (labelOf[id] || id) + " " + (PIN_NAME[pin] || pin);
+  }
   function say(html, kind) {
     out.className = "ws-out " + (kind || "");
     out.innerHTML = html;
@@ -2813,14 +3427,16 @@ const MISSIONS = [
     const b = tid;
     selected = null;
     if (
-      !wires.some((w) => (w.a === a && w.b === b) || (w.a === b && w.b === a))
+      !allWires().some(
+        (w) => (w.a === a && w.b === b) || (w.a === b && w.b === a),
+      )
     )
       wires.push({ a, b, c: color });
-    stopRun();
+    running = false;
     render();
     say(
       "Fir " +
-        colorName(color) +
+        COLOR_NAME[color] +
         ": <b>" +
         nice(a) +
         "</b> → <b>" +
@@ -2830,235 +3446,171 @@ const MISSIONS = [
     );
   }
 
-  const NAMES = {
-    "bat.plus": "plus baterii",
-    "bat.minus": "minus baterii",
-    "fuse.a": "siguranță (stânga)",
-    "fuse.b": "siguranță (dreapta)",
-    "sw.a": "întrerupător (stânga)",
-    "sw.b": "întrerupător (dreapta)",
-    "mot.m1": "motor (sus)",
-    "mot.m2": "motor (jos)",
-    "mus.vm": "mușchi 12V (VM)",
-    "mus.gnd": "mușchi GND",
-    "mus.v5": "mușchi 5V",
-    "mus.out1": "mușchi OUT1",
-    "mus.out2": "mușchi OUT2",
-    "cap.plus": "condensator +",
-    "cap.minus": "condensator −",
-    "esp.vin": "creier VIN",
-    "esp.gnd": "creier GND",
-    "esp.g23": "creier GPIO23",
-    "esp.g35": "creier GPIO35",
-    "hc.vcc": "ochi VCC",
-    "hc.trig": "ochi TRIG",
-    "hc.echo": "ochi ECHO",
-    "hc.gnd": "ochi GND",
-    "r1.a": "2,2 kΩ (stânga)",
-    "r1.b": "2,2 kΩ (dreapta)",
-    "r2.a": "3,3 kΩ (stânga)",
-    "r2.b": "3,3 kΩ (dreapta)",
-  };
-  const nice = (t) => NAMES[t] || t;
-  const colorName = (c) =>
-    ({ red: "roșu", black: "negru", orange: "portocaliu", yellow: "galben" })[
-      c
-    ];
-
-  // ---- electrical check: nets = groups of terminals joined by wires (and by closed switch / fuse when asked) ----
-  function nets(opts) {
+  // ---- nets ----
+  function nets(through) {
     const parent = {};
     const find = (x) => {
-      while (parent[x] && parent[x] !== x) x = parent[x];
+      if (!(x in parent)) parent[x] = x;
+      while (parent[x] !== x) {
+        parent[x] = parent[parent[x]];
+        x = parent[x];
+      }
       return x;
     };
     const join = (a, b) => {
-      parent[a] = parent[a] || a;
-      parent[b] = parent[b] || b;
       const ra = find(a);
       const rb = find(b);
       if (ra !== rb) parent[ra] = rb;
     };
-    Object.keys(pos).forEach((t) => {
-      parent[t] = t;
+    Object.keys(pos).forEach((t) => find(t));
+    allWires().forEach((w) => join(w.a, w.b));
+    level.parts.forEach(([type, id]) => {
+      const br = DEF[type].bridge;
+      if (br) br.slice(1).forEach((p) => join(id + "." + br[0], id + "." + p));
     });
-    wires.forEach((w) => join(w.a, w.b));
-    if (opts && opts.through) {
+    if (through) {
       if (pos["fuse.a"]) join("fuse.a", "fuse.b");
       if (pos["sw.a"] && switchOn) join("sw.a", "sw.b");
     }
     return find;
   }
-  function chain(f, start, comps, end, problems) {
-    let cur = f(start);
-    for (const [ca, cb, name] of comps) {
-      let exit;
-      if (f(ca) === cur) exit = cb;
-      else if (f(cb) === cur) exit = ca;
-      else {
-        problems.push(name + " nu e legat(ă) la locul lui în drumul plusului.");
-        return false;
-      }
-      if (f(exit) === cur) {
-        problems.push(
-          name +
-            " are ambele capete pe același fir: curentul trece pe lângă ea, ca și cum n-ar exista.",
-        );
-        return false;
-      }
-      cur = f(exit);
-    }
-    if (f(end) !== cur) {
-      problems.push("Drumul plusului nu ajunge la " + nice(end) + ".");
-      return false;
-    }
-    return true;
-  }
-  function check() {
-    const problems = [];
-    const warnings = [];
-    const f = nets();
-    const fx = nets({ through: true });
-    let short = false;
-    if (pos["bat.plus"] && fx("bat.plus") === fx("bat.minus")) short = true;
-    if (pos["mus.v5"] && f("mus.v5") === f("mus.gnd")) short = true;
-    wires.forEach((w) => {
-      const plusSide = [
-        "bat.plus",
-        "fuse.a",
-        "fuse.b",
-        "sw.a",
-        "sw.b",
-        "mus.vm",
-        "cap.plus",
-        "mus.v5",
-        "esp.vin",
-        "hc.vcc",
-      ];
-      if (
-        w.c === "black" &&
-        (plusSide.includes(w.a) || plusSide.includes(w.b)) &&
-        !(
-          w.a.endsWith("gnd") ||
-          w.b.endsWith("gnd") ||
-          w.a.endsWith("minus") ||
-          w.b.endsWith("minus")
-        )
-      ) {
-        if (
-          !warnings.includes(
-            "Fir negru pe plus: merge electric, dar regula noastră e roșu = plus, negru = minus. Altfel te încurci la verificare.",
-          )
-        ) {
-          warnings.push(
-            "Fir negru pe plus: merge electric, dar regula noastră e roșu = plus, negru = minus. Altfel te încurci la verificare.",
-          );
-        }
-      }
-    });
-    if (level.id === 1) {
-      chain(
-        f,
-        "bat.plus",
-        [
-          ["fuse.a", "fuse.b", "Siguranța"],
-          ["sw.a", "sw.b", "Întrerupătorul"],
-          ["mot.m1", "mot.m2", "Motorul"],
-        ],
-        "bat.minus",
-        problems,
-      );
-    }
-    if (level.id === 2) {
-      chain(
-        f,
-        "bat.plus",
-        [
-          ["fuse.a", "fuse.b", "Siguranța"],
-          ["sw.a", "sw.b", "Întrerupătorul"],
-        ],
-        "mus.vm",
-        problems,
-      );
-      if (f("bat.minus") !== f("mus.gnd"))
-        problems.push("Minusul bateriilor trebuie să ajungă la GND pe mușchi.");
-      if (f("cap.plus") === f("mus.gnd") && f("cap.minus") === f("mus.vm"))
-        problems.push(
-          "Condensatorul e pus invers! Dunga (−) merge la GND. Invers se poate umfla sau sparge.",
-        );
-      else if (f("cap.plus") !== f("mus.vm") || f("cap.minus") !== f("mus.gnd"))
-        problems.push(
-          "Condensatorul merge între 12V (VM) și GND: + la VM, − (dunga) la GND.",
-        );
-      const mo = [f("mot.m1"), f("mot.m2")].sort().join("|");
-      const ou = [f("mus.out1"), f("mus.out2")].sort().join("|");
-      if (mo !== ou)
-        problems.push(
-          "Motorul se leagă la OUT1 și OUT2 ale mușchiului (sensul nu contează aici).",
-        );
-    }
-    if (level.id === 3) {
-      if (f("esp.g35") === f("hc.echo"))
-        problems.push(
-          "PERICOL: ECHO direct pe GPIO35! Ochii trimit 5 V, creierul suportă cel mult 3,6 V. Pinul s-ar arde. ECHO trece prin 2,2 kΩ.",
-        );
-      if (f("mus.v5") === f("esp.g35") || f("mus.v5") === f("esp.g23"))
-        problems.push(
-          "PERICOL: 5 V pe un pin GPIO al creierului. Se arde. Pinii GPIO primesc doar semnale.",
-        );
-      if (f("esp.vin") !== f("mus.v5"))
-        problems.push("Creierul ia curent de la 5V-ul mușchiului: 5V → VIN.");
-      if (f("hc.vcc") !== f("mus.v5"))
-        problems.push("Ochii iau tot 5V de la mușchi: 5V → VCC.");
-      if (f("esp.gnd") !== f("mus.gnd") || f("hc.gnd") !== f("mus.gnd"))
-        problems.push(
-          "GND trebuie să fie comun: mușchi, creier și ochi, toți legați împreună.",
-        );
-      if (f("hc.trig") !== f("esp.g23"))
-        problems.push(
-          "TRIG merge la GPIO23 (creierul îi spune ochilor „trimite un sunet”).",
-        );
-      const r1Echo =
-        f("r1.a") === f("hc.echo")
-          ? "r1.b"
-          : f("r1.b") === f("hc.echo")
-            ? "r1.a"
-            : null;
-      const r2Echo =
-        f("r2.a") === f("hc.echo")
-          ? "r2.b"
-          : f("r2.b") === f("hc.echo")
-            ? "r2.a"
-            : null;
-      if (r2Echo && !r1Echo && f(r2Echo) === f("esp.g35"))
-        problems.push(
-          "Ai inversat rezistențele: așa ajung doar ~2 V la creier și s-ar putea să nu „audă” ecoul. Sus (de la ECHO) vine 2,2 kΩ, jos (spre GND) 3,3 kΩ.",
-        );
-      else if (!r1Echo || f(r1Echo) !== f("esp.g35"))
-        problems.push(
-          "ECHO → 2,2 kΩ → GPIO35. Rezistența de 2,2 kΩ stă între ECHO și GPIO35.",
-        );
-      else {
-        const r2toGnd =
-          (f("r2.a") === f("esp.g35") && f("r2.b") === f("mus.gnd")) ||
-          (f("r2.b") === f("esp.g35") && f("r2.a") === f("mus.gnd"));
-        if (!r2toGnd)
+  const ends = (part) => pinsOf[part].slice(0, 2);
+  const linked = (f, t) =>
+    allWires().some((w) => f(w.a) === f(t) || f(w.b) === f(t));
+
+  function evaluate(f, rule, dangers, problems, warnings) {
+    if (rule.t === "chain") {
+      let cur = f(rule.start);
+      for (const [part, name] of rule.parts) {
+        const [p, q] = ends(part);
+        let exit;
+        if (f(p) === cur) exit = q;
+        else if (f(q) === cur) exit = p;
+        else {
           problems.push(
-            "De la GPIO35, rezistența de 3,3 kΩ merge la GND. Așa cele două fac împreună un „împărțitor” care coboară 5 V la 3 V.",
+            name +
+              " nu e la locul ei în drumul plusului: plus baterii → siguranță → întrerupător.",
           );
+          return;
+        }
+        if (f(exit) === cur) {
+          problems.push(
+            name +
+              " are ambele capete pe același fir: curentul trece pe lângă ea, ca și cum n-ar exista.",
+          );
+          return;
+        }
+        cur = f(exit);
       }
+      if (f(rule.end) !== cur)
+        problems.push("Drumul plusului nu ajunge la " + nice(rule.end) + ".");
+    } else if (rule.t === "same") {
+      const r0 = f(rule.terms[0]);
+      if (!rule.terms.every((t) => f(t) === r0)) problems.push(rule.msg);
+    } else if (rule.t === "distinct") {
+      const seen = new Set(rule.terms.map((t) => f(t)));
+      if (seen.size < rule.terms.length) problems.push(rule.msg);
+    } else if (rule.t === "never") {
+      if (f(rule.a) === f(rule.b)) dangers.push(rule.msg);
+    } else if (rule.t === "free") {
+      if (allWires().some((w) => w.a === rule.term || w.b === rule.term))
+        dangers.push(rule.msg);
+    } else if (rule.t === "between" || rule.t === "nbetween") {
+      const [p, q] = ends(rule.part);
+      const fa = f(rule.a);
+      const fb = f(rule.b);
+      const ok = (f(p) === fa && f(q) === fb) || (f(q) === fa && f(p) === fb);
+      if (rule.t === "between" && !ok) problems.push(rule.msg);
+      if (rule.t === "nbetween" && ok) dangers.push(rule.msg);
+    } else if (rule.t === "warnpos") {
+      const [p, q] = ends(rule.part);
+      if (f(p) === f(rule.term) || f(q) === f(rule.term))
+        problems.push(rule.msg);
+    } else if (rule.t === "pair") {
+      const a = ends(rule.part)
+        .map((t) => f(t))
+        .sort()
+        .join("|");
+      const b = rule.terms
+        .map((t) => f(t))
+        .sort()
+        .join("|");
+      if (a !== b) problems.push(rule.msg);
+    } else if (rule.t === "polar") {
+      const [cp, cm] = ["cap.plus", "cap.minus"];
+      if (f(cp) === f(rule.minus) && f(cm) === f(rule.plus))
+        dangers.push(
+          "PERICOL: condensatorul e pus invers! Dunga (−) merge la GND. Invers se poate umfla sau sparge.",
+        );
+      else if (f(cp) !== f(rule.plus) || f(cm) !== f(rule.minus))
+        problems.push(
+          "Condensatorul merge între 12V (VM) și GND: + la 12V, dunga (−) la GND.",
+        );
     }
-    return { short, problems, warnings };
   }
 
-  function stopRun() {
-    level.running = false;
+  function check() {
+    const f = nets(false);
+    const fx = nets(true);
+    const short = (level.shorts || []).some(
+      ([a, b]) => pos[a] && pos[b] && fx(a) === fx(b),
+    );
+    const dangers = [];
+    const problems = [];
+    const warnings = [];
+    const minusSide = ["minus", "gnd"];
+    if (
+      wires.some(
+        (w) =>
+          w.c === "black" &&
+          ["plus", "vm", "v5", "vin", "vcc"].some(
+            (p) => w.a.endsWith("." + p) || w.b.endsWith("." + p),
+          ) &&
+          !minusSide.some(
+            (p) => w.a.endsWith("." + p) || w.b.endsWith("." + p),
+          ),
+      )
+    ) {
+      warnings.push(
+        "Fir negru pe plus: merge electric, dar regula noastră e roșu = plus, negru = minus. Altfel te încurci la verificare.",
+      );
+    }
+    if (
+      wires.some(
+        (w) =>
+          w.c === "red" &&
+          ["minus", "gnd"].some(
+            (p) => w.a.endsWith("." + p) || w.b.endsWith("." + p),
+          ) &&
+          !["plus", "vm"].some(
+            (p) => w.a.endsWith("." + p) || w.b.endsWith("." + p),
+          ),
+      )
+    ) {
+      warnings.push("Fir roșu pe minus: regula noastră e negru = minus.");
+    }
+    level.rules.forEach((r) => evaluate(f, r, dangers, problems, warnings));
+    return {
+      short,
+      dangers: [...new Set(dangers)],
+      problems: [...new Set(problems)],
+      warnings,
+    };
   }
+
   function verdict(run) {
     const r = check();
-    const warn = r.warnings.map((w) => '<li class="w">' + w + "</li>").join("");
+    const list = (arr, cls) =>
+      arr
+        .map(
+          (m) =>
+            "<li" + (cls ? ' class="' + cls + '"' : "") + ">" + m + "</li>",
+        )
+        .join("");
+    const warn = list(r.warnings, "w");
+    driveBtn.hidden = true;
     if (r.short) {
-      stopRun();
+      running = false;
       render();
       say(
         "<b>Scurtcircuit!</b> Plusul ajunge direct la minus, fără să treacă prin nimic care să folosească curentul. În realitate firele se încing în câteva secunde, iar siguranța de 3 A se arde. Caută firul care leagă direct plusul de minus.",
@@ -3066,48 +3618,40 @@ const MISSIONS = [
       );
       return;
     }
-    if (r.problems.length) {
-      stopRun();
+    if (r.dangers.length || r.problems.length) {
+      running = false;
       render();
+      const n = r.dangers.length + r.problems.length;
       say(
         "<b>" +
-          (run ? "Nu pornește." : "Mai e de lucru.") +
-          "</b><ul>" +
-          r.problems.map((p) => "<li>" + p + "</li>").join("") +
+          (run ? "Nu pornește." : "Mai e de lucru") +
+          "</b> " +
+          (n > 1 ? "(" + n + " lucruri)" : "") +
+          "<ul>" +
+          list(r.dangers, "d") +
+          list(r.problems) +
           warn +
           "</ul>",
         "bad",
       );
       return;
     }
-    if (level.hasSwitch && run && !switchOn) {
+    const hasSw = !!pos["sw.a"];
+    if (hasSw && !switchOn) {
       say(
-        "<b>Totul e legat corect.</b> Acum pune întrerupătorul pe I.<ul>" +
-          warn +
-          "</ul>",
+        "<b>Totul e legat corect.</b> Acum pune întrerupătorul pe I." +
+          (warn ? "<ul>" + warn + "</ul>" : ""),
         "ok",
       );
       return;
     }
-    if (run || !level.hasSwitch) {
-      level.running = true;
-      render();
-      const msg = {
-        1: "Motorul se învârte! Curentul pleacă din plus, trece prin siguranță și întrerupător, învârte motorul și se întoarce la minus.",
-        2: "Motorul se învârte, comandat de mușchi. Exact așa vei lega pe robot fiecare parte (Misiunea 9a–9b).",
-        3: "Creierul și ochii au curent, iar ecoul ajunge la creier ca 3 V, sigur pentru pin. Ochii măsoară: 37 cm.",
-      }[level.id];
-      say(
-        "<b>Corect!</b> " + msg + (warn ? "<ul>" + warn + "</ul>" : ""),
-        "ok",
-      );
-      return;
-    }
+    running = true;
+    render();
     say(
-      "<b>Totul e legat corect.</b> Pune întrerupătorul pe I ca să vezi ce se întâmplă." +
-        (warn ? "<ul>" + warn + "</ul>" : ""),
+      "<b>Corect!</b> " + level.ok + (warn ? "<ul>" + warn + "</ul>" : ""),
       "ok",
     );
+    if (level.final) driveBtn.hidden = false;
   }
 
   function setLevel(n) {
@@ -3115,23 +3659,39 @@ const MISSIONS = [
     wires = [];
     selected = null;
     switchOn = false;
-    level.running = false;
+    running = false;
+    layout();
     $("ws-goal").textContent = level.goal;
     document
       .querySelectorAll("[data-lvl]")
       .forEach((b) =>
         b.setAttribute("aria-pressed", String(Number(b.dataset.lvl) === n)),
       );
-    powerBtn.hidden = !level.hasSwitch;
+    powerBtn.hidden = !pos["sw.a"];
     powerBtn.textContent = "Întrerupătorul: O (oprit)";
     powerBtn.setAttribute("aria-pressed", "false");
+    driveBtn.hidden = true;
     render();
     say(
-      "Apasă pe o bornă (cerculețele gri), apoi pe borna unde vrei să ajungă firul.",
+      "Apasă pe o bornă (cerculețele gri), apoi pe borna unde vrei să ajungă firul." +
+        (level.minW && level.minW > 800
+          ? " Pe telefon, desenul se poate trage stânga-dreapta; pe calculator încape tot."
+          : ""),
       "",
     );
   }
 
+  const lvBox = $("ws-levels");
+  lvBox.innerHTML = LEVELS.map(
+    (l) =>
+      '<button type="button" class="pbtn" data-lvl="' +
+      l.id +
+      '" aria-pressed="false">' +
+      l.id +
+      " · " +
+      l.title +
+      "</button>",
+  ).join("");
   document
     .querySelectorAll("[data-lvl]")
     .forEach((b) =>
@@ -3149,17 +3709,20 @@ const MISSIONS = [
   $("ws-clear").addEventListener("click", () => {
     wires = [];
     selected = null;
-    stopRun();
+    running = false;
+    driveBtn.hidden = true;
     render();
-    say("Am scos toate firele.", "");
+    say("Am scos toate firele tale.", "");
   });
   $("ws-solve").addEventListener("click", () => {
     wires = level.solution.map(([a, b, c]) => ({ a, b, c }));
     selected = null;
-    stopRun();
+    running = false;
     render();
     say(
-      "Asta e soluția. Uită-te pe ea, apoi apasă „Scoate firele” și încearcă singur.",
+      "Asta e soluția (" +
+        wires.length +
+        " fire). Uită-te pe ea, apoi apasă „Scoate firele” și încearcă singur.",
       "",
     );
   });
@@ -3170,12 +3733,22 @@ const MISSIONS = [
       : "Întrerupătorul: O (oprit)";
     powerBtn.setAttribute("aria-pressed", String(switchOn));
     if (!switchOn) {
-      stopRun();
+      running = false;
+      driveBtn.hidden = true;
       render();
       say("Întrerupătorul e pe O: nu curge curent.", "");
       return;
     }
     verdict(true);
+  });
+  driveBtn.addEventListener("click", () => {
+    const target = $("h-demo");
+    if (target)
+      target.scrollIntoView({
+        behavior: reduce ? "auto" : "smooth",
+        block: "start",
+      });
+    if (typeof window.robotDrive === "function") window.robotDrive("unstuck");
   });
   if (reduce) svg.classList.add("still");
   setLevel(1);
