@@ -158,6 +158,7 @@ section { display: grid; gap: 20px; min-width: 0; }
 .m-state.now { background: var(--accent); color: #1b1600; }
 .m-state.wait { background: var(--info-soft); color: var(--info); }
 .m-state.ok { background: var(--ok-soft); color: var(--ok); }
+.m-state.later { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
 .m-body { padding: 16px 18px 20px; display: grid; gap: 16px; }
 .need { display: flex; flex-wrap: wrap; gap: 8px; }
 .need span { font-size: 13px; background: var(--bg); border: 1px solid var(--line); border-radius: 99px; padding: 4px 10px; }
@@ -176,8 +177,22 @@ section { display: grid; gap: 20px; min-width: 0; }
 .box.photo { background: var(--accent-soft); }
 .box.photo b { color: var(--accent-ink); }
 .boxes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.road { display: grid; gap: 8px; list-style: none; padding: 0; margin: 0; }
-.road li { display: grid; grid-template-columns: 3ch 1fr auto; gap: 12px; align-items: baseline; padding: 12px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.road { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; list-style: none; padding: 0; margin: 0; }
+.road a { display: grid; grid-template-columns: 3ch 1fr; gap: 4px 10px; align-items: baseline; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); text-decoration: none; min-width: 0; height: 100%; }
+.road a:hover { border-color: var(--accent); }
+.road a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.road a .later { grid-column: 2; }
+details.mission > summary { list-style: none; cursor: pointer; }
+details.mission > summary::-webkit-details-marker { display: none; }
+details.mission > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+details.mission:not([open]) > summary { border-bottom: 0; }
+details.mission > summary::after { content: "▾"; grid-column: -1; font-size: 18px; color: var(--muted); transition: transform .2s ease; }
+details.mission[open] > summary::after { transform: rotate(180deg); }
+.m-head { grid-template-columns: auto 1fr auto auto; }
+.pre { background: var(--info-soft); border-radius: 10px; padding: 10px 14px; font-size: 15px; }
+.m-fig { margin: 0; }
+.m-fig .scroll svg { min-width: 520px; }
+.road li { min-width: 0; }
 .road .n { font-family: var(--f-display); font-weight: 900; font-size: 22px; color: var(--muted); }
 .road .t { display: grid; gap: 2px; min-width: 0; }
 .road .t b { font-family: var(--f-display); font-weight: 800; font-size: 18px; font-variation-settings: "wdth" 92; }
@@ -248,8 +263,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
   .loop { grid-template-columns: 1fr; }
   .m-head { grid-template-columns: auto 1fr; }
   .m-head .m-state { grid-column: 2; justify-self: start; }
-  .road li { grid-template-columns: 3ch 1fr; }
-  .road .later { grid-column: 2; }
+  .m-head { grid-template-columns: auto 1fr auto; }
 }
 @media (prefers-reduced-motion: reduce) { .bar > span { transition: none; } }
 </style>
@@ -264,7 +278,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
         Mergem în misiuni mici, de 15–20 de minute, cu desene. Nu trebuie să știi nimic dinainte.</p>
       <ol class="stages" aria-label="Unde suntem">
         <li class="ok">✓ Schița</li><li class="ok">✓ Planul</li><li class="ok">✓ Lista de piese</li><li class="ok">✓ Piese primite</li>
-        <li class="wait">Creierul: pe drum</li><li class="now">Acum: Misiunea 0</li><li>Corpul</li><li>Cablarea</li><li>Programul</li><li>Primul drum</li>
+        <li class="wait">Creierul: pe drum</li><li class="now">Acum: Misiunea 0</li><li>Corpul (2–6)</li><li>Creierul (7)</li><li>Cablarea (8–9)</li><li>Programul</li><li>Primul drum</li>
       </ol>
       <div class="progress" aria-live="polite">
         <div class="progress-row"><span>Piese găsite</span><span id="pcount">0 / 0</span></div>
@@ -529,13 +543,11 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     <div class="sec-head">
       <p class="eyebrow">Construcția</p>
       <h2 id="h-missions">Misiunile</h2>
-      <p class="lead">Misiunile 0 și 1 sunt gata. Pe următoarele le scriem în detaliu după ce văd kitul despachetat,
-        ca desenele să arate exact piesele tale.</p>
+      <p class="lead">Zece misiuni, de la piese până la primul drum. Fiecare are tot ce-ți trebuie: ce pregătești, pașii unul câte unul,
+        un desen unde ajută, ce trebuie să vezi la final și când te oprești. Le facem în ordine; deschide-o pe cea la care ești.</p>
     </div>
+    <ol class="road" id="road" aria-label="Lista misiunilor"></ol>
     <div class="missions" id="missions"></div>
-
-    <p class="subhead">Ce urmează</p>
-    <ol class="road" id="road"></ol>
   </section>
 
   <footer>
@@ -790,45 +802,579 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
   ];
 
   // ---- missions ----
-  const MISSIONS = [
-    { id: 'm0', n: '0', title: 'Cunoaște piesele', time: '20 min', state: 'now', stateText: 'acum',
-      need: ['toate piesele', 'o masă liberă', 'telefonul pentru poză'],
-      steps: [
-        'Fă pe masă cinci grămezi, ca filtrele de mai sus: creier și simțuri, corpul robotului, energie, legături, unelte.',
-        'Ia piesele pe rând. Găsește cardul fiecăreia, citește „ce face” și bifează „Am găsit-o”.',
-        'Plăcile electronice le poți scoate din punga neagră ca să le vezi. Le ții de margini și le pui la loc în pungă.',
-        'Desfă kitul cu 4 motoare și așază toate piesele lui una lângă alta, fără să le asamblezi.',
-        'Uită-te la motoare: au deja fire roșu-negru lipite? Scrie-mi da sau nu.',
-        'Numără șuruburile, piulițele și distanțierele (tuburile metalice cu filet) din kit și scrie-mi câte sunt.',
-      ],
-      see: 'Toate cardurile bifate, mai puțin creierul (pe drum), întrerupătorul și suportul de letcon (de cumpărat).',
-      stop: 'O piesă e ruptă, crăpată sau lipsește. Nu o înlocui cu altceva; spune-mi.',
-      photo: 'Kitul cu 4 motoare despachetat, de sus, cu toate piesele lui una lângă alta, și un motor de aproape.' },
-    { id: 'm1', n: '1', title: 'Masa de lucru și siguranța', time: '15 min', state: 'wait', stateText: 'după ce ai suportul de letcon',
-      need: ['suportul de letcon', 'un carton gros sau o placă de lemn', 'buretele suportului', 'o fereastră'],
-      steps: [
-        'Pune cartonul gros sau placa de lemn pe masă. Pe el lucrăm, ca să nu ardem masa.',
-        'Așază suportul de letcon în partea mâinii cu care scrii, spre marginea din spate a mesei.',
-        'Udă buretele cu puțină apă și stoarce-l: trebuie să fie umed, nu să curgă din el.',
-        'Pune letconul în suport, fără să-l bagi în priză. Firul lui să nu treacă prin fața ta și să nu atârne de masă.',
-        'Deschide fereastra: fumul de la fludor nu se respiră.',
-        'Învață regula de aur: letconul stă doar în mâna ta sau în suport. Niciodată pe masă.',
-        'Și a doua regulă: vârful de metal nu se atinge niciodată, nici după ce l-ai scos din priză. Rămâne fierbinte cam 10 minute.',
-      ],
-      see: 'Masa cu carton, suportul cu letconul în el (fără priză), buretele umed, fereastra deschisă.',
-      stop: 'Firul letconului e tăiat, ars sau are sârma la vedere. Atunci nu-l folosim deloc.',
-      photo: 'Masa pregătită, cu letconul în suport.' },
-  ];
-  const ROAD = [
-    { n: '2', t: 'Primul lipit, pe un fir de probă', d: 'Lipești două fire între ele până iese o lipitură lucioasă. Încă nu atingem motoarele.' },
-    { n: '3', t: 'Firele la cele 4 motoare', d: 'Un fir roșu și unul negru la fiecare motor (dacă nu au deja), apoi „haina” de tub termocontractabil.' },
-    { n: '4', t: 'Motoarele și roțile pe etajul de jos', d: 'Patru motoare cu suporții lor, apoi roțile. Robotul se poate împinge cu mâna.' },
-    { n: '5', t: 'Etajul de jos: baterii, mușchi, siguranță', d: 'Cutia de baterii, cei doi mușchi și clema se lipesc cu bandă. Bateriile nu se pun încă.' },
-    { n: '6', t: 'Etajul de sus și întrerupătorul', d: 'A doua placă pe distanțiere, placa cu găurele, ochii în față, întrerupătorul în spate.' },
-    { n: '7', t: 'Prima viață a creierului', d: 'Când vine ESP32: îl legăm la PC și facem un LED să clipească. Fără baterii, fără motoare.' },
-    { n: '8', t: 'Cât de tare trage un motor', d: 'Măsurăm cu multimetrul curentul unui motor ținut pe loc 1–2 secunde, ca să știm că mușchii fac față.' },
-    { n: '9', t: 'Cablarea, fir cu fir', d: 'Fiecare fir cu culoarea și locul lui, verificat la multimetru înainte de prima alimentare.' },
-  ];
+// ---- missions (every step is one action; **bold** = the word to remember) ----
+const FIG = (inner, label) =>
+  '<svg viewBox="0 0 600 230" role="img" aria-label="' +
+  label +
+  '"><rect width="600" height="230" fill="var(--paper)"/>' +
+  inner +
+  "</svg>";
+const T = (x, y, s, o) =>
+  '<text x="' +
+  x +
+  '" y="' +
+  y +
+  '" font-family="Lexend, sans-serif" font-size="' +
+  ((o && o.size) || 14) +
+  '"' +
+  (o && o.anchor ? ' text-anchor="' + o.anchor + '"' : "") +
+  ' font-weight="' +
+  ((o && o.weight) || 500) +
+  '" fill="' +
+  ((o && o.fill) || "var(--o-ink)") +
+  '">' +
+  s +
+  "</text>";
+const FIGS = {
+  solder: FIG(
+    [
+      [100, "bună", "lucioasă, ca un con", "var(--ok)", "good"],
+      [300, "rece", "mată, ca un bulgăre", "var(--stop)", "cold"],
+      [500, "prea puțin", "se văd firele", "var(--stop)", "thin"],
+    ]
+      .map(
+        ([x, t, d, c, k]) =>
+          '<line x1="' +
+          (x - 90) +
+          '" y1="110" x2="' +
+          (x - 10) +
+          '" y2="110" stroke="var(--o-wire-red)" stroke-width="10" stroke-linecap="round"/>' +
+          '<line x1="' +
+          (x + 10) +
+          '" y1="110" x2="' +
+          (x + 90) +
+          '" y2="110" stroke="var(--o-wire-red)" stroke-width="10" stroke-linecap="round"/>' +
+          '<line x1="' +
+          (x - 30) +
+          '" y1="110" x2="' +
+          (x + 30) +
+          '" y2="110" stroke="var(--o-metal-d)" stroke-width="5"/>' +
+          (k === "good"
+            ? '<path d="M' +
+              (x - 34) +
+              " 110 Q" +
+              x +
+              " 82 " +
+              (x + 34) +
+              " 110 Q" +
+              x +
+              " 138 " +
+              (x - 34) +
+              ' 110 Z" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="2"/><path d="M' +
+              (x - 14) +
+              ' 100 q10 -6 22 0" fill="none" stroke="var(--o-white)" stroke-width="3" stroke-linecap="round"/>'
+            : "") +
+          (k === "cold"
+            ? '<circle cx="' +
+              x +
+              '" cy="110" r="24" fill="#9aa0a0" stroke="var(--o-ink)" stroke-width="2"/><circle cx="' +
+              (x - 6) +
+              '" cy="104" r="5" fill="#b4b9b8"/>'
+            : "") +
+          (k === "thin"
+            ? '<g stroke="var(--o-metal-d)" stroke-width="2"><line x1="' +
+              (x - 28) +
+              '" y1="104" x2="' +
+              (x + 28) +
+              '" y2="100"/><line x1="' +
+              (x - 28) +
+              '" y1="112" x2="' +
+              (x + 28) +
+              '" y2="118"/><line x1="' +
+              (x - 26) +
+              '" y1="118" x2="' +
+              (x + 26) +
+              '" y2="108"/></g><circle cx="' +
+              (x + 4) +
+              '" cy="110" r="5" fill="var(--o-metal)"/>'
+            : "") +
+          T(x, 50, (k === "good" ? "✓ " : "✗ ") + t, {
+            anchor: "middle",
+            weight: 700,
+            size: 17,
+            fill: c,
+          }) +
+          T(x, 180, d, { anchor: "middle", size: 13 }),
+      )
+      .join(""),
+    "Trei lipituri: bună (lucioasă, conică), rece (mată, bulgăre), prea puțin fludor (se văd firele)",
+  ),
+  motorWires: FIG(
+    '<rect x="40" y="70" width="230" height="90" rx="6" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/>' +
+      '<rect x="270" y="82" width="120" height="66" rx="30" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="2"/>' +
+      '<rect x="386" y="88" width="16" height="54" rx="4" fill="var(--o-white)" stroke="var(--o-ink)" stroke-width="2"/>' +
+      '<rect x="400" y="92" width="22" height="10" rx="2" fill="var(--o-metal-d)"/><rect x="400" y="128" width="22" height="10" rx="2" fill="var(--o-metal-d)"/>' +
+      '<rect x="414" y="88" width="40" height="18" rx="5" fill="var(--o-wire-red)" opacity=".55" stroke="var(--o-ink)" stroke-width="1.5"/>' +
+      '<rect x="414" y="124" width="40" height="18" rx="5" fill="var(--o-wire-black)" opacity=".55" stroke="var(--o-ink)" stroke-width="1.5"/>' +
+      '<path d="M454 97 C500 97 500 112 580 112" fill="none" stroke="var(--o-wire-red)" stroke-width="6"/>' +
+      '<path d="M454 133 C500 133 500 122 580 122" fill="none" stroke="var(--o-wire-black)" stroke-width="6"/>' +
+      '<rect x="330" y="76" width="10" height="78" rx="3" fill="var(--o-white)" stroke="var(--o-ink)" stroke-width="1.5"/>' +
+      '<rect x="146" y="40" width="18" height="30" rx="3" fill="var(--o-white)" stroke="var(--o-ink)" stroke-width="2"/>' +
+      T(434, 64, "tubul (haina) — îl pui ÎNAINTE de lipit", {
+        anchor: "middle",
+        size: 13,
+        weight: 700,
+      }) +
+      T(335, 186, "colier: firul nu trage de plăcuțe", {
+        anchor: "middle",
+        size: 13,
+      }) +
+      T(155, 30, "axul roții", { anchor: "middle", size: 13 }) +
+      T(560, 100, "roșu", {
+        anchor: "end",
+        size: 13,
+        fill: "var(--o-wire-red)",
+        weight: 700,
+      }) +
+      T(560, 146, "negru", { anchor: "end", size: 13, weight: 700 }),
+    "Motor cu fir roșu și fir negru lipite pe plăcuțe, acoperite cu tub termocontractabil, prinse cu un colier",
+  ),
+  bracket: FIG(
+    '<rect x="30" y="20" width="540" height="22" rx="4" fill="var(--o-acrylic)" stroke="var(--o-ink)" stroke-width="2"/>' +
+      '<rect x="168" y="24" width="14" height="14" fill="var(--paper)" stroke="var(--o-ink)" stroke-width="1.5"/><rect x="418" y="24" width="14" height="14" fill="var(--paper)" stroke="var(--o-ink)" stroke-width="1.5"/>' +
+      T(300, 36, "placa de jos (văzută din lateral) · fantele pentru suporți", {
+        anchor: "middle",
+        size: 12,
+      }) +
+      '<path d="M150 70 h50 v12 h-19 v110 h-12 v-110 h-19 Z" fill="var(--o-acrylic)" stroke="var(--o-ink)" stroke-width="2"/>' +
+      '<path d="M400 70 h50 v12 h-19 v110 h-12 v-110 h-19 Z" fill="var(--o-acrylic)" stroke="var(--o-ink)" stroke-width="2"/>' +
+      '<rect x="220" y="110" width="160" height="62" rx="6" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/>' +
+      '<g stroke="var(--o-metal-d)" stroke-width="4"><line x1="110" y1="128" x2="500" y2="128"/><line x1="110" y1="156" x2="500" y2="156"/></g>' +
+      '<g fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="1.5"><rect x="98" y="120" width="14" height="16" rx="2"/><rect x="98" y="148" width="14" height="16" rx="2"/><rect x="500" y="121" width="14" height="14"/><rect x="500" y="149" width="14" height="14"/></g>' +
+      '<g stroke="var(--o-ink)" stroke-width="1.5" stroke-dasharray="4 4"><line x1="175" y1="64" x2="175" y2="44"/><line x1="425" y1="64" x2="425" y2="44"/></g>' +
+      T(105, 196, "cap de șurub", { anchor: "middle", size: 12 }) +
+      T(507, 196, "piuliță", { anchor: "middle", size: 12 }) +
+      T(
+        300,
+        214,
+        "suport – motor – suport, strânse cu 2 șuruburi lungi (vedere explodată)",
+        { anchor: "middle", size: 13, weight: 700 },
+      ),
+    "Motorul prins între doi suporți în formă de T, cu două șuruburi lungi și piulițe",
+  ),
+  standoff: FIG(
+    '<rect x="60" y="150" width="480" height="16" rx="4" fill="var(--o-acrylic)" stroke="var(--o-ink)" stroke-width="2"/>' +
+      '<rect x="60" y="40" width="480" height="16" rx="4" fill="var(--o-acrylic)" stroke="var(--o-ink)" stroke-width="2"/>' +
+      [140, 460]
+        .map(
+          (x) =>
+            '<rect x="' +
+            (x - 9) +
+            '" y="56" width="18" height="94" fill="#c9a640" stroke="var(--o-ink)" stroke-width="1.5"/>' +
+            '<line x1="' +
+            x +
+            '" y1="166" x2="' +
+            x +
+            '" y2="184" stroke="var(--o-metal-d)" stroke-width="6"/><rect x="' +
+            (x - 12) +
+            '" y="184" width="24" height="10" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="1.5"/>' +
+            '<line x1="' +
+            x +
+            '" y1="20" x2="' +
+            x +
+            '" y2="56" stroke="var(--o-metal-d)" stroke-width="6"/><rect x="' +
+            (x - 14) +
+            '" y="12" width="28" height="10" rx="3" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="1.5"/>',
+        )
+        .join("") +
+      '<rect x="230" y="110" width="80" height="40" rx="3" fill="var(--o-pcb-red)"/><rect x="250" y="92" width="40" height="20" fill="var(--o-pcb-black)"/>' +
+      T(300, 84, "cel puțin 3 cm loc pentru mușchi", {
+        anchor: "middle",
+        size: 12,
+      }) +
+      T(470, 212, "piuliță dedesubt (capătul cu filet)", {
+        anchor: "middle",
+        size: 12,
+      }) +
+      T(180, 212, "șurub de sus (capătul cu gaură)", {
+        anchor: "middle",
+        size: 12,
+      }) +
+      T(560, 106, "pilon", { anchor: "end", size: 13, weight: 700 }),
+    "Două plăci ținute la distanță de piloni metalici: piuliță dedesubt, șurub deasupra",
+  ),
+  stall: FIG(
+    '<rect x="30" y="70" width="130" height="80" rx="8" fill="var(--o-pcb-black)"/>' +
+      '<g fill="var(--o-green)">' +
+      [44, 72, 100, 128]
+        .map(
+          (x) => '<rect x="' + x + '" y="84" width="20" height="52" rx="4"/>',
+        )
+        .join("") +
+      "</g>" +
+      T(95, 170, "cutia de 4 baterii din kit", { anchor: "middle", size: 12 }) +
+      '<rect x="250" y="40" width="110" height="150" rx="10" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/>' +
+      '<rect x="262" y="52" width="86" height="34" rx="3" fill="#c9d4c4" stroke="var(--o-ink)" stroke-width="1.5"/>' +
+      T(340, 76, "0.85", { anchor: "end", size: 18, weight: 700 }) +
+      '<g><circle cx="275" cy="168" r="8" fill="var(--o-wire-red)" stroke="var(--o-ink)" stroke-width="1.5"/><circle cx="305" cy="168" r="8" fill="var(--o-pcb-black)"/><circle cx="335" cy="168" r="8" fill="var(--o-pcb-black)"/></g>' +
+      T(275, 212, "10A", {
+        anchor: "middle",
+        size: 12,
+        weight: 700,
+        fill: "var(--o-wire-red)",
+      }) +
+      T(305, 212, "COM", { anchor: "middle", size: 12, weight: 700 }) +
+      T(335, 212, "VΩ", { anchor: "middle", size: 12, weight: 700 }) +
+      '<rect x="450" y="80" width="110" height="60" rx="6" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/>' +
+      T(505, 116, "motor", { anchor: "middle", size: 14, weight: 700 }) +
+      '<path d="M160 90 C210 90 230 140 275 160" fill="none" stroke="var(--o-wire-red)" stroke-width="4"/>' +
+      '<path d="M305 160 C320 120 400 96 450 96" fill="none" stroke="var(--o-wire-black)" stroke-width="4"/>' +
+      '<path d="M450 126 C380 160 220 200 160 130" fill="none" stroke="var(--o-wire-black)" stroke-width="4" stroke-dasharray="8 5"/>' +
+      T(200, 60, "+ baterie → mufa 10A", { anchor: "middle", size: 12 }) +
+      T(400, 72, "COM → fir roșu motor", { anchor: "middle", size: 12 }) +
+      T(330, 228, "fir negru motor → − baterie (linia punctată)", {
+        anchor: "middle",
+        size: 12,
+      }),
+    "Măsurarea curentului: baterie, multimetru pe 10 A și motor legate în șir",
+  ),
+};
+
+const MISSIONS = [
+  {
+    id: "m0",
+    n: "0",
+    title: "Cunoaște piesele",
+    time: "20 min",
+    state: "now",
+    stateText: "acum",
+    need: ["toate piesele", "o masă liberă", "telefonul pentru poză"],
+    steps: [
+      "Fă pe masă cinci grămezi, ca filtrele de mai sus: creier și simțuri, corpul robotului, energie, legături, unelte.",
+      "Ia piesele pe rând. Găsește cardul fiecăreia, citește „ce face” și bifează **Am găsit-o**.",
+      "Plăcile electronice le poți scoate din punga neagră ca să le vezi. Le ții de margini și le pui la loc în pungă.",
+      "Desfă kitul cu 4 motoare și așază toate piesele lui una lângă alta, fără să le asamblezi.",
+      "Numără **plăcile transparente mari**. Trebuie să fie **două**. Scrie-mi câte ai.",
+      "Uită-te la motoare: au deja fire roșu-negru lipite? Scrie-mi **da** sau **nu**.",
+      "Numără șuruburile lungi, șuruburile scurte și piulițele din kit și scrie-mi câte sunt din fiecare.",
+    ],
+    see: "Toate cardurile bifate, mai puțin creierul (pe drum), întrerupătorul și suportul de letcon (de cumpărat).",
+    stop: "O piesă e ruptă, crăpată sau lipsește (de exemplu, a doua placă). Nu o înlocui cu altceva; spune-mi.",
+    photo:
+      "Kitul cu 4 motoare despachetat, de sus, cu toate piesele lui una lângă alta, și un motor de aproape.",
+  },
+
+  {
+    id: "m1",
+    n: "1",
+    title: "Masa de lucru și siguranța",
+    time: "15 min",
+    state: "wait",
+    stateText: "după ce ai suportul de letcon",
+    need: [
+      "suportul de letcon",
+      "buretele",
+      "un carton gros sau o placă de lemn",
+      "o fereastră",
+    ],
+    steps: [
+      "Pune cartonul gros sau placa de lemn pe masă. Pe el lucrăm, ca să nu ardem masa.",
+      "Așază suportul de letcon în partea mâinii cu care scrii, spre marginea din spate a mesei.",
+      "Udă buretele cu puțină apă și stoarce-l: trebuie să fie **umed**, nu să curgă din el. Pune-l în tăvița suportului.",
+      "Pune letconul în suport, **fără să-l bagi în priză**. Firul lui să nu treacă prin fața ta și să nu atârne de masă.",
+      "Verifică firul letconului pe toată lungimea: fără tăieturi, fără locuri arse, fără sârmă la vedere.",
+      "Deschide fereastra: fumul de la fludor nu se respiră.",
+      "Învață regula de aur: letconul stă **doar în mâna ta sau în suport**. Niciodată pe masă.",
+      "A doua regulă: **vârful de metal nu se atinge niciodată**, nici după ce l-ai scos din priză. Rămâne fierbinte cam 10 minute.",
+      "Pregătește un pahar cu apă rece lângă masă (nu lângă priză): dacă te arzi, ții degetul în apă rece 10 minute.",
+    ],
+    see: "Masa cu carton, suportul cu letconul în el (fără priză), buretele umed, fereastra deschisă, apa rece pregătită.",
+    stop: "Firul letconului e tăiat, ars sau are sârma la vedere. Atunci nu-l folosim deloc.",
+    photo: "Masa pregătită, cu letconul în suport.",
+  },
+
+  {
+    id: "m2",
+    n: "2",
+    title: "Primul lipit, pe un fir de probă",
+    time: "30 min",
+    state: "later",
+    stateText: "după misiunea 1",
+    pre: "Lucrăm pe fire de probă: 2–3 fire Dupont tată-tată tăiate în două. Motoarele nu se ating în misiunea asta.",
+    need: [
+      "letcon în suport",
+      "fludor",
+      "clește de dezizolat",
+      "2–3 fire Dupont tată-tată",
+      "cleștii crocodil (țin firele)",
+      "multimetru",
+    ],
+    fig: "solder",
+    figCap: "Cum arată o lipitură bună și două greșeli clasice.",
+    steps: [
+      "Taie 2 fire Dupont în două, la mijloc. Ai acum 4 bucăți.",
+      "Dezizolează 5 mm la capătul tăiat al fiecărei bucăți: cleștele pe fir, strângi ușor, tragi plasticul.",
+      "Răsucește între degete sârmulițele de la capăt, ca să nu se desfacă.",
+      "Bagă letconul în priză și așteaptă **3 minute** să se încălzească. Între timp nu-l scoți din suport.",
+      "Șterge vârful pe buretele umed: trebuie să sfârâie puțin și să devină argintiu.",
+      "Atinge vârful cu fludorul: pe vârf rămâne un strat lucios. Asta se cheamă **cositorire**.",
+      "Prinde un fir cu un clește crocodil, ca să stea singur. Ține vârful letconului sub capătul dezizolat **2 secunde**.",
+      "Cu cealaltă mână atinge fludorul de **fir** (nu de vârf). Fludorul curge în sârmulițe. Ridică fludorul, apoi letconul.",
+      "Fă la fel la toate cele 4 capete. Letconul se pune în suport între lipituri.",
+      "Pune două capete cositorite unul lângă altul, paralel. Încălzește-le împreună 2 secunde și adaugă puțin fludor.",
+      "Nu mișca firele **10 secunde**, cât se răcește lipitura.",
+      "Trage ușor de cele două fire: lipitura nu trebuie să cedeze.",
+      "Multimetrul pe simbolul cu sunet (continuitate). Atinge capetele libere ale firelor: trebuie să auzi **bip**.",
+      "Mai fă o lipitură la fel. Compar-o cu desenul de mai sus.",
+      "La final: letconul în suport, scos din priză. Te speli pe mâini.",
+    ],
+    see: "Două lipituri lucioase, netede, în formă de con, care țin când tragi de ele și fac bip la multimetru.",
+    stop: "Iese flacără, fum gros sau miros de plastic ars: letconul în suport și scos din priză. Te arzi: apă rece 10 minute.",
+    photo: "Cele două lipituri, de aproape, cu lumină bună.",
+  },
+
+  {
+    id: "m3",
+    n: "3",
+    title: "Firele la cele 4 motoare",
+    time: "45 min",
+    state: "later",
+    stateText: "după misiunea 2",
+    pre: "Dacă motoarele au deja fire, sari peste pașii 1–11 și faci doar pașii 12–15.",
+    need: [
+      "4 motoare",
+      "fir roșu + negru",
+      "tub termocontractabil subțire",
+      "letcon + fludor",
+      "clește de dezizolat",
+      "coliere",
+      "1 acumulator AA",
+      "uscător de păr",
+    ],
+    fig: "motorWires",
+    figCap:
+      "Așa arată un motor gata: roșu și negru pe plăcuțe, „haina” peste lipituri, colierul care ține firele.",
+    steps: [
+      "Taie **4 fire roșii** și **4 fire negre**, fiecare de **20 cm**. Ajung de la motor până la mușchi, cu rezervă.",
+      "La fiecare fir dezizolează **5 mm** la un capăt (spre motor) și **8 mm** la celălalt (spre mușchi). Răsucește sârmulițele.",
+      "Cositorește **doar capătul de 5 mm** (spre motor). Capătul de 8 mm rămâne doar răsucit: el intră sub un șurub.",
+      "Taie **8 bucăți de tub** termocontractabil, fiecare de **1,5 cm**.",
+      "Trage câte un tub pe fiecare fir și împinge-l **departe de capăt**. Dacă îl uiți, după lipire nu-l mai poți pune.",
+      "Alege regula pentru toate cele 4 motoare: cu axul spre tine și plăcuțele în sus, **roșu pe plăcuța din stânga**, negru pe cea din dreapta.",
+      "Bagă capătul firului prin gaura plăcuței și îndoaie-l ușor, ca un cârlig.",
+      "Lipește: vârful pe plăcuță și pe fir **2 secunde**, apoi fludorul. Cel mult **3 secunde** în total: plăcuța stă pe plastic și se poate topi.",
+      "Uită-te că fludorul nu face pod între cele două plăcuțe. Ele nu au voie să se atingă.",
+      "După ce s-a răcit, trage tubul peste lipitură, până acoperă tot metalul.",
+      "Strânge tubul cu uscătorul de păr pe treapta cea mai caldă, de aproape, 20–30 de secunde. Se micșorează și strânge lipitura.",
+      "Prinde firele de corpul motorului cu un **colier**, ca firul să nu tragă de plăcuțe.",
+      "Test: atinge capetele firelor de un **acumulator AA** (roșu pe +, negru pe −). Motorul trebuie să se învârtă încet.",
+      "Inversează firele pe acumulator: motorul se învârte în sens opus. E normal; direcția o alegem la cablare.",
+      "Lipește pe fiecare motor o bucată de bandă izolatoare cu numărul lui: 1, 2, 3, 4.",
+    ],
+    see: "Patru motoare cu câte un fir roșu și unul negru, tub peste fiecare lipitură, colier pe fiecare, și toate se învârt cu un acumulator AA.",
+    stop: "O plăcuță se îndoaie sau se rupe, capacul de plastic se topește, sau fludorul unește cele două plăcuțe.",
+    photo: "Cele 4 motoare cu fire, cu plăcuțele de aproape.",
+  },
+
+  {
+    id: "m4",
+    n: "4",
+    title: "Motoarele și roțile pe etajul de jos",
+    time: "40 min",
+    state: "later",
+    stateText: "după misiunea 3",
+    pre: "Desenul arată cum se prind de obicei motoarele la kiturile de acest tip. Pașii 2–4 îi confirm pe poza kitului tău, înainte să începi.",
+    need: [
+      "placa de jos",
+      "8 suporți de motor în formă de T",
+      "8 șuruburi lungi + 8 piulițe",
+      "4 motoare cu fire",
+      "4 roți",
+      "șurubelnița în cruce",
+    ],
+    fig: "bracket",
+    figCap:
+      "Fiecare motor stă între doi suporți, strâns cu două șuruburi lungi.",
+    steps: [
+      "Dezlipește folia de protecție (hârtie sau plastic subțire) de pe plăci și de pe suporți. Plăcile devin transparente.",
+      "Găsește **placa de jos**: e cea cu fante înguste lângă margini, unde intră suporții în formă de T.",
+      "Bagă un suport T în fanta lui, cu „pălăria” pe placă și „piciorul” în jos.",
+      "Pune motorul lângă picior, cu **axul spre exteriorul robotului** (unde va fi roata) și firele spre interior.",
+      "Pune al doilea suport T de cealaltă parte a motorului. Motorul stă acum ca un sandviș.",
+      "Bagă cele **2 șuruburi lungi** prin suport, motor și suport, apoi pune piulițele.",
+      "Strânge întâi cu degetele, apoi **doar un sfert de tură** cu șurubelnița. Plexiglasul crapă dacă strângi prea tare.",
+      "Fă la fel la toate cele 4 motoare. Cele două din stânga stau în oglindă cu cele două din dreapta.",
+      "Trece firele fiecărui motor prin cea mai apropiată gaură mare din placă, spre partea de sus a plăcii.",
+      "Roțile: împinge fiecare roată **drept** pe ax, rotind-o puțin. Axul are două fețe plate; gaura roții la fel.",
+      "Dacă o roată nu intră, nu o bate. Spune-mi; uneori gaura se pilește puțin.",
+      "Pune robotul pe masă: toate cele 4 roți trebuie să atingă masa și robotul să nu se clatine.",
+      "Învârte ușor fiecare roată cu mâna: se mișcă greu, din cauza reductorului, dar fără să se blocheze.",
+    ],
+    see: "Patru motoare prinse fix, roțile drepte, robotul stă pe toate cele 4 roți și nu se clatină.",
+    stop: "Apare o fisură în plexiglas (oprești strânsul), un motor se mișcă în suport, sau o roată stă strâmb.",
+    photo: "Robotul de dedesubt (cu motoarele) și din lateral.",
+  },
+
+  {
+    id: "m5",
+    n: "5",
+    title: "Etajul de jos: baterii, mușchi, siguranță",
+    time: "40 min",
+    state: "later",
+    stateText: "după misiunea 4",
+    pre: "Bateriile nu intră în cutie în misiunea asta. Fără baterii, orice fir poți să-l legi și să-l dezlegi fără risc.",
+    need: [
+      "cutia de 6 baterii (goală)",
+      "2 mușchi L298N",
+      "portsiguranța + siguranța de 3 A",
+      "regleta",
+      "bandă dublu-adezivă",
+      "coliere",
+      "șurubelnița dreaptă mică (2 mm)",
+    ],
+    steps: [
+      "Așază piesele pe placa de jos fără să le lipești, ca pe hartă: cutia de baterii în spate, mușchiul **stânga** pe partea stângă, mușchiul **dreapta** pe dreapta.",
+      "Lasă libere cele 6 găuri pentru piloni (pentru etajul de sus) și găurile prin care trec firele motoarelor.",
+      "Lasă loc ca bateriile să poată fi scoase și puse fără să desfaci nimic.",
+      "Pe fiecare mușchi, scoate cu degetele cele **2 căluți negri** de lângă ENA și ENB (2 pini fiecare). Păstrează-i într-o pungă.",
+      "Lasă pus călutul de lângă borna de 5 V (pe ambii mușchi). Pe acela nu-l scoatem.",
+      "Lipește cutia de baterii și cei doi mușchi cu **bandă dublu-adezivă** groasă, apăsând 10 secunde.",
+      "Desfă cu șurubelnița dreaptă bornele albastre **OUT1, OUT2, OUT3, OUT4** ale mușchiului stânga.",
+      "Motorul **față-stânga**: roșu în OUT1, negru în OUT2. Motorul **spate-stânga**: roșu în OUT3, negru în OUT4. Strânge șuruburile.",
+      "Fă la fel pe mușchiul dreapta, cu motoarele **față-dreapta** (OUT1, OUT2) și **spate-dreapta** (OUT3, OUT4).",
+      "Trage ușor de fiecare fir: nu trebuie să iasă din bornă.",
+      "Taie din regletă o bucată de **4 căsuțe**. Lipește-o lângă cutia de baterii. Portsiguranța o lipești lângă ea.",
+      "Strânge firele motoarelor cu coliere, ca să nu ajungă la roți.",
+    ],
+    see: "Etajul de jos cu cutia de baterii (goală), doi mușchi fără căluții ENA/ENB, firele motoarelor în borne, regleta și siguranța lipite, nimic lângă roți.",
+    stop: "Un fir de motor nu stă în bornă, un mușchi atinge o piesă de metal a șasiului, sau nu mai e loc pentru piloni.",
+    photo: "Etajul de jos, de sus, cu bornele mușchilor vizibile.",
+  },
+
+  {
+    id: "m6",
+    n: "6",
+    title: "Etajul de sus și întrerupătorul",
+    time: "45 min",
+    state: "later",
+    stateText: "după misiunea 5",
+    need: [
+      "6 piloni metalici",
+      "placa de sus",
+      "șuruburi + piulițe M3",
+      "întrerupătorul",
+      "2 fire roșii de 15 cm",
+      "tub termocontractabil",
+      "letcon + fludor",
+      "placa cu găurele",
+      "ochii + suportul lor",
+    ],
+    fig: "standoff",
+    figCap:
+      "Pilonii țin placa de sus la distanță: piuliță dedesubt, șurub deasupra.",
+    steps: [
+      "Înșurubează cei **6 piloni** în găurile plăcii de jos: capătul cu filet prin placă, cu o piuliță dedesubt. Strânge cu degetele.",
+      "Pregătește întrerupătorul: dezizolează **5 mm** la cele 2 fire roșii de 15 cm și cositorește-le.",
+      "Trage câte un tub pe fiecare fir, apoi lipește câte un fir pe fiecare picior al întrerupătorului (2–3 secunde fiecare).",
+      "Trage tuburile peste picioare și strânge-le cu uscătorul. Cele două picioare nu au voie să se atingă.",
+      "Test: multimetrul pe continuitate între cele două fire. Pe **I** trebuie să auzi bip, pe **O** nu.",
+      "Lipește întrerupătorul cu bandă dublu-adezivă pe placa de sus, **în spate**, cu clapeta în sus, ca să-l poți apăsa ușor.",
+      "Trece firele întrerupătorului printr-o gaură a plăcii de sus, spre etajul de jos. Încă nu le legi nicăieri.",
+      "Pune placa de sus pe piloni și prinde-o cu câte un șurub în fiecare pilon. Strânge ușor.",
+      "Așază placa cu găurele pe placa de sus, în mijloc, **fără să scoți hârtia de pe spate**. Confirmăm locul pe poză, apoi o lipești.",
+      "Prinde ochii (HC-SR04) în suportul lor și lipește suportul în **față**, cu ochii privind drept înainte.",
+      "Verifică: între etaje se vede loc deasupra mușchilor, iar niciun fir nu e strivit între plăci.",
+    ],
+    see: "Robotul cu două etaje: întrerupătorul în spate, sus, ochii în față, placa cu găurele la locul ei, nimic strivit.",
+    stop: "Un pilon nu se strânge, placa de sus apasă pe radiatorul unui mușchi, sau întrerupătorul face bip pe ambele poziții.",
+    photo: "Robotul din față, din spate și de sus.",
+  },
+
+  {
+    id: "m7",
+    n: "7",
+    title: "Prima viață a creierului",
+    time: "30 min",
+    state: "later",
+    stateText: "când vine ESP32",
+    pre: "Creierul se leagă doar la PC, prin cablu. Nu stă pe robot și nu are baterii în misiunea asta.",
+    need: [
+      "placa ESP32 Plusivo",
+      "cablul USB-C de date",
+      "PC-ul cu VS Code",
+      "un carton uscat",
+    ],
+    steps: [
+      "Pune placa pe cartonul uscat, nu pe punga ei neagră: unele pungi conduc electricitatea.",
+      "Leagă placa la PC cu cablul USB-C. Pe placă se aprinde un LED mic.",
+      "Pe PC deschide **Manager dispozitive** → **Porturi (COM și LPT)**. Trebuie să apară „Silicon Labs CP210x … (COMx)”. Scrie-mi numărul COM.",
+      "Dacă nu apare, spune-mi: instalăm împreună driverul CP210x (e gratuit).",
+      "Eu pregătesc programul de test și extensia PlatformIO din VS Code; tu apeși **Upload** (săgeata din bara de jos).",
+      "Dacă în terminal apare „Connecting…” și se oprește, ține apăsat butonul **BOOT** de pe placă până începe încărcarea.",
+      "După „SUCCESS”, un LED de pe placă trebuie să clipească o dată pe secundă.",
+      "Apasă **Serial Monitor** (iconița cu priză din bara de jos): trebuie să vezi „Robot 01 · v0.1.0 · salut!”.",
+      "Scoate cablul din PC. LED-ul se stinge. Placa se pune înapoi în punga ei.",
+    ],
+    see: "LED-ul clipind o dată pe secundă și mesajul de salut în Serial Monitor.",
+    stop: "Placa se încălzește tare, miroase a ars, sau Windows spune „dispozitiv USB nerecunoscut” de mai multe ori.",
+    photo: "O captură de ecran cu Serial Monitor și o poză cu LED-ul aprins.",
+  },
+
+  {
+    id: "m8",
+    n: "8",
+    title: "Cât de tare trage un motor",
+    time: "20 min",
+    state: "later",
+    stateText: "înainte de cablare",
+    pre: "Folosim cutia de 4 baterii din kit (4,8 V, cam cât primesc motoarele de la mușchi). Măsurătoarea ține cel mult 2 secunde.",
+    need: [
+      "multimetrul",
+      "cutia de 4 baterii din kit + 4 acumulatori",
+      "un motor cu roată (de pe robot)",
+      "cleștii crocodil",
+    ],
+    fig: "stall",
+    figCap:
+      "Multimetrul pe 10 A stă „în drumul” curentului, între baterie și motor.",
+    steps: [
+      "Scoate firele unui singur motor din bornele mușchiului. Restul rămân cum sunt.",
+      "Pune 4 acumulatori în cutia de 4 baterii din kit.",
+      "Pe multimetru: firul **roșu în mufa 10A**, firul negru în **COM**. Rotița pe **10A** (curent continuu, DCA).",
+      "Leagă: plusul cutiei la sonda roșie; sonda neagră la firul roșu al motorului (prinzi cu un clește crocodil).",
+      "Ultima legătură: firul negru al motorului la minusul cutiei. Roata trebuie să se învârtă liber.",
+      "Citește cifra cu roata liberă (în jur de 0,1–0,3). Scrie-o.",
+      "Ține roata **ferm cu mâna**, să nu se mai învârtă, **cel mult 2 secunde**. Citește cifra cea mai mare. Scrie-o.",
+      "Dă drumul roții și desfă imediat firul negru de la minusul cutiei.",
+      "Fă la fel la încă un motor. Scrie-mi cele 4 cifre.",
+      "Foarte important: mută firul roșu al multimetrului **înapoi în mufa VΩ**. Altfel, la următoarea măsurare de tensiune faci scurtcircuit.",
+      "Bagă firele motorului înapoi în bornele lui (roșu și negru, ca înainte).",
+    ],
+    see: "Patru cifre scrise (roată liberă și roată ținută, la 2 motoare) și firul roșu al multimetrului înapoi în VΩ.",
+    stop: "Firele se încălzesc, miroase a ars, sau multimetrul arată „1” în stânga (prea mult pentru treaptă).",
+    photo: "Ecranul multimetrului în timp ce ții roata.",
+  },
+
+  {
+    id: "m9",
+    n: "9",
+    title: "Cablarea, fir cu fir",
+    time: "2–3 sesiuni",
+    state: "later",
+    stateText: "după misiunile 7 și 8",
+    pre: "O scriu fir cu fir după ce știm curentul motoarelor (misiunea 8) și avem creierul în mână. Mai jos e harta ei, în 7 părți.",
+    need: [
+      "tot robotul",
+      "fire Dupont",
+      "rezistențele 2,2k, 3,3k, 10k, 4,7k",
+      "condensatorul 1000 µF",
+      "multimetru",
+      "checklistul de prima alimentare",
+    ],
+    steps: [
+      "**9a · Drumul plusului:** cutia de baterii → siguranța de 3 A → întrerupător → regletă → borna 12V (VM) a ambilor mușchi. Fără baterii.",
+      "**9b · Minusul comun:** cutia de baterii → regletă → GND la ambii mușchi → GND la creier. Condensatorul între plus și minus la regletă, cu dunga spre minus.",
+      "**9c · 5 V:** doar de la mușchiul stânga la VIN pe creier și la VCC pe ochi. 5 V-ul mușchiului dreapta rămâne liber.",
+      "**9d · Comenzile:** 3 fire de la creier la mușchiul stânga și 3 la mușchiul dreapta, fiecare dublat pe placa cu găurele (ENA+ENB, IN1+IN3, IN2+IN4).",
+      "**9e · Ochii:** TRIG direct, ECHO prin cele două rezistențe (2,2k și 3,3k).",
+      "**9f · Paznicul bateriei:** rezistențele 10k și 4,7k, de la plus la minus, cu mijlocul la creier.",
+      "**9g · Prima alimentare:** checklistul complet, roțile în aer, măsurători cu multimetrul, abia apoi bateriile.",
+    ],
+    see: "Fiecare parte se verifică la multimetru înainte de următoarea.",
+    stop: "Orice fir pe care nu știi unde merge: îl lași nelegat și mă întrebi.",
+    photo: "O poză după fiecare parte (9a … 9g).",
+  },
+];
 
   // ---- state + persistence ----
   const LS_KEY = 'cartea-robotului-01';
@@ -892,22 +1438,30 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     }));
   }
 
+  function md(s) { return esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
+
   function renderMissions() {
     const box = document.getElementById('missions');
+    const open = new Set(Array.from(box.querySelectorAll('details.mission[open]')).map((d) => d.id));
+    const first = !box.children.length;
     box.innerHTML = MISSIONS.map((m) => {
       const steps = m.steps.map((s, i) => {
         const id = m.id + '-' + (i + 1);
         const on = !!state.checked[id];
-        return '<li><label class="tick' + (on ? ' done' : '') + '"><input type="checkbox" id="cb-' + id + '" data-id="' + id + '"' + (on ? ' checked' : '') + '><span>' + esc(s) + '</span></label></li>';
+        return '<li><label class="tick' + (on ? ' done' : '') + '"><input type="checkbox" id="cb-' + id + '" data-id="' + id + '"' + (on ? ' checked' : '') + '><span>' + md(s) + '</span></label></li>';
       }).join('');
-      return '<article class="mission" id="' + m.id + '">' +
-        '<div class="m-head"><span class="m-num">' + m.n + '</span><div class="m-title"><h3>' + esc(m.title) + '</h3><span class="m-time">⏱ ' + m.time + '</span></div>' +
-        '<span class="m-state ' + m.state + '" data-m="' + m.id + '">' + esc(m.stateText) + '</span></div>' +
-        '<div class="m-body"><div><p class="eyebrow">Ai nevoie de</p><div class="need">' + m.need.map((x) => '<span>' + esc(x) + '</span>').join('') + '</div></div>' +
+      const isOpen = first ? (m.state === 'now') : open.has(m.id);
+      return '<details class="mission" id="' + m.id + '"' + (isOpen ? ' open' : '') + '>' +
+        '<summary class="m-head"><span class="m-num">' + m.n + '</span><span class="m-title"><h3>' + esc(m.title) + '</h3><span class="m-time">⏱ ' + esc(m.time) + ' · ' + m.steps.length + ' pași</span></span>' +
+        '<span class="m-state ' + m.state + '" data-m="' + m.id + '">' + esc(m.stateText) + '</span></summary>' +
+        '<div class="m-body">' +
+        (m.pre ? '<p class="pre">' + md(m.pre) + '</p>' : '') +
+        '<div><p class="eyebrow">Ai nevoie de</p><div class="need">' + m.need.map((x) => '<span>' + esc(x) + '</span>').join('') + '</div></div>' +
+        (m.fig ? '<figure class="figure m-fig"><div class="scroll">' + FIGS[m.fig] + '</div><p class="cap">' + esc(m.figCap || '') + '</p></figure>' : '') +
         '<ol class="steps">' + steps + '</ol>' +
-        '<div class="boxes"><div class="box see"><b>Ce trebuie să vezi</b>' + esc(m.see) + '</div>' +
-        '<div class="box stop"><b>Oprește-te dacă</b>' + esc(m.stop) + '</div>' +
-        '<div class="box photo"><b>Poza pentru chat</b>' + esc(m.photo) + '</div></div></div></article>';
+        '<div class="boxes"><div class="box see"><b>Ce trebuie să vezi</b>' + md(m.see) + '</div>' +
+        '<div class="box stop"><b>Oprește-te dacă</b>' + md(m.stop) + '</div>' +
+        '<div class="box photo"><b>Poza pentru chat</b>' + md(m.photo) + '</div></div></div></details>';
     }).join('');
     box.querySelectorAll('input[type=checkbox]').forEach((cb) => cb.addEventListener('change', () => {
       toggle(cb.dataset.id, cb.checked);
@@ -916,8 +1470,16 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     }));
     renderMissionStates();
 
-    document.getElementById('road').innerHTML = ROAD.map((r) =>
-      '<li><span class="n">' + r.n + '</span><span class="t"><b>' + esc(r.t) + '</b><span>' + esc(r.d) + '</span></span><span class="later">în curând</span></li>').join('');
+    document.getElementById('road').innerHTML = MISSIONS.map((m) =>
+      '<li><a href="#' + m.id + '" data-m="' + m.id + '"><span class="n">' + m.n + '</span><span class="t"><b>' + esc(m.title) + '</b><span>' + esc(m.time) + ' · ' + m.steps.length + ' pași</span></span>' +
+      '<span class="later" data-road="' + m.id + '">' + esc(m.stateText) + '</span></a></li>').join('');
+    document.querySelectorAll('#road a').forEach((a) => a.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      const d = document.getElementById(a.dataset.m);
+      if (!d) return;
+      d.open = true;
+      d.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    }));
   }
 
   function renderMissionStates() {
@@ -927,6 +1489,8 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       if (!el) return;
       el.className = 'm-state ' + (done ? 'ok' : m.state);
       el.textContent = done ? 'făcută · trimite poza' : m.stateText;
+      const r = document.querySelector('[data-road="' + m.id + '"]');
+      if (r) r.textContent = done ? 'făcută ✓' : m.stateText;
     });
   }
 
