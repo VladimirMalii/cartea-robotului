@@ -1,0 +1,1018 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Cartea Robotului 01</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..900&family=Lexend:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a workshop build manual — hero with the finished robot, the working loop, then
+   parts as a filterable card wall (drawings on a light "bench paper" panel), then missions as a
+   numbered sequence. Safety yellow is the one loud color; red only means STOP. */
+:root {
+  --bg: #f2f4f3;
+  --surface: #ffffff;
+  --ink: #16211d;
+  --muted: #56635d;
+  --line: #d3dbd7;
+  --accent: #f0a500;
+  --accent-soft: #fff1cc;
+  --accent-ink: #6e4a00;
+  --ok: #1d7748;
+  --ok-soft: #dff3e8;
+  --stop: #bf3428;
+  --stop-soft: #fbe3e0;
+  --info: #2a5fc0;
+  --info-soft: #e2ebfb;
+  /* the drawing panel stays a light bench-paper tone in both themes, so object colors read the same */
+  --paper: #e9eeeb;
+  --o-ink: #1b201e;
+  --o-pcb-red: #c8322b;
+  --o-pcb-blue: #1e5fae;
+  --o-pcb-black: #232624;
+  --o-yellow: #f2c230;
+  --o-metal: #bcc3c6;
+  --o-metal-d: #7b858a;
+  --o-wire-red: #d33a2c;
+  --o-wire-black: #1e1e1e;
+  --o-white: #fbfbf7;
+  --o-green: #2f9a4b;
+  --o-blue: #2e7fd1;
+  --o-orange: #e8792b;
+  --o-acrylic: #bfe0ee;
+  --o-rubber: #2c2c2c;
+  --o-beige: #e7d3a6;
+  --o-brown: #7a4a1e;
+  --o-violet: #7b4fc0;
+  --o-res-blue: #4f8fd6;
+
+  --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Lexend", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1412; --surface: #161d1a; --ink: #e5ebe8; --muted: #9ba8a2; --line: #29342f;
+    --accent: #f5b52a; --accent-soft: #3a2e10; --accent-ink: #f7cd6b;
+    --ok: #4cc38a; --ok-soft: #12301f; --stop: #ff6e61; --stop-soft: #3a1714;
+    --info: #86adff; --info-soft: #17233d; --paper: #dfe5e2;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1412; --surface: #161d1a; --ink: #e5ebe8; --muted: #9ba8a2; --line: #29342f;
+  --accent: #f5b52a; --accent-soft: #3a2e10; --accent-ink: #f7cd6b;
+  --ok: #4cc38a; --ok-soft: #12301f; --stop: #ff6e61; --stop-soft: #3a1714;
+  --info: #86adff; --info-soft: #17233d; --paper: #dfe5e2;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.wrap { max-width: 1100px; margin: 0 auto; padding-inline: 18px; padding-block: 20px 64px; display: grid; gap: 56px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.05; }
+h2 { font-size: clamp(28px, 4.2vw, 40px); font-weight: 850; font-variation-settings: "wdth" 88; letter-spacing: -0.01em; }
+h3 { font-size: 21px; font-weight: 800; font-variation-settings: "wdth" 92; }
+p { margin: 0; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.lead { color: var(--muted); max-width: 62ch; }
+section { display: grid; gap: 20px; min-width: 0; }
+.sec-head { display: grid; gap: 8px; }
+
+/* hero */
+.hero { display: grid; grid-template-columns: 1.15fr 1fr; gap: 28px; align-items: center; padding-top: 12px; }
+.hero h1 { font-size: clamp(44px, 8vw, 88px); font-weight: 900; font-variation-settings: "wdth" 78; letter-spacing: -0.02em; }
+.hero h1 .num { display: inline-block; background: var(--accent); color: #1b1600; padding: 0 0.16em; border-radius: 6px; }
+.hero-text { display: grid; gap: 16px; min-width: 0; }
+.hero-art { background: var(--paper); border-radius: 16px; padding: 12px; }
+.hero-art svg { width: 100%; height: auto; display: block; }
+.progress { display: grid; gap: 8px; max-width: 460px; }
+.bar { height: 12px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar > span { display: block; height: 100%; width: 0; background: var(--ok); border-radius: 99px; transition: width .4s ease; }
+.progress-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sync { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+
+/* working loop */
+.loop { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; counter-reset: step; list-style: none; padding: 0; margin: 0; }
+.loop li { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 14px 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.loop li::before { counter-increment: step; content: counter(step); font-family: var(--f-display); font-weight: 900; font-size: 30px; line-height: 1; color: var(--accent-ink); }
+.loop b { font-family: var(--f-display); font-weight: 800; font-size: 17px; font-variation-settings: "wdth" 92; }
+.loop span { font-size: 14px; color: var(--muted); }
+
+/* words */
+.words { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.word { background: var(--surface); border: 1px solid var(--line); padding: 12px 14px; border-radius: var(--radius); min-width: 0; }
+.word dt { font-family: var(--f-display); font-weight: 800; font-size: 18px; }
+.word dd { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
+
+/* filter chips */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 14px var(--f-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 7px 14px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip:focus-visible, .check:focus-within, .tick:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* parts */
+.parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+.part { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; min-width: 0; }
+.part.done { border-color: var(--ok); }
+.part .art { background: var(--paper); aspect-ratio: 16 / 10; display: grid; place-items: center; position: relative; }
+.part .art svg { width: 86%; height: 86%; }
+.pill { position: absolute; top: 10px; left: 10px; font: 700 11px var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; }
+.pill.in-poza { background: #ffffff; color: #1b201e; }
+.pill.confirmat { background: #dff3e8; color: #135a35; }
+.pill.pe-drum { background: #e2ebfb; color: #1d4592; }
+.pill.lipsa { background: #fbe3e0; color: #8e2117; }
+.pill.extra { background: #f1ecdf; color: #5c4a14; }
+.part .body { padding: 14px 16px 6px; display: grid; gap: 6px; align-content: start; }
+.part .name { font-family: var(--f-display); font-size: 22px; font-weight: 850; font-variation-settings: "wdth" 86; line-height: 1.05; }
+.part .pack { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.part .what { font-size: 15px; }
+.part .where { font-size: 13px; color: var(--muted); }
+.part .warn { font-size: 13px; background: var(--stop-soft); color: var(--ink); border-radius: 8px; padding: 6px 10px; }
+.part .tip { font-size: 13px; background: var(--accent-soft); color: var(--ink); border-radius: 8px; padding: 6px 10px; }
+.check { display: flex; align-items: center; gap: 10px; padding: 12px 16px 14px; border-top: 1px dashed var(--line); cursor: pointer; font-weight: 500; font-size: 15px; }
+.check input, .tick input { width: 22px; height: 22px; accent-color: var(--ok); flex: none; cursor: pointer; margin: 0; }
+
+/* missions */
+.missions { display: grid; gap: 16px; }
+.mission { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; min-width: 0; }
+.m-head { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; padding: 16px 18px; border-bottom: 1px solid var(--line); }
+.m-num { font-family: var(--f-display); font-weight: 900; font-size: 44px; line-height: 0.9; font-variation-settings: "wdth" 75; color: var(--accent-ink); min-width: 1.4ch; text-align: center; }
+.m-title { display: grid; gap: 2px; min-width: 0; }
+.m-time { font-family: var(--f-mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.m-state { font: 700 11px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; white-space: nowrap; }
+.m-state.now { background: var(--accent); color: #1b1600; }
+.m-state.wait { background: var(--info-soft); color: var(--info); }
+.m-state.ok { background: var(--ok-soft); color: var(--ok); }
+.m-body { padding: 16px 18px 20px; display: grid; gap: 16px; }
+.need { display: flex; flex-wrap: wrap; gap: 8px; }
+.need span { font-size: 13px; background: var(--bg); border: 1px solid var(--line); border-radius: 99px; padding: 4px 10px; }
+.steps { display: grid; gap: 8px; list-style: none; padding: 0; margin: 0; counter-reset: s; }
+.tick { display: grid; grid-template-columns: 22px 2.2ch 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 10px; background: var(--bg); cursor: pointer; }
+.tick::before { counter-increment: s; content: counter(s) "."; grid-column: 2; grid-row: 1; font-family: var(--f-display); font-weight: 800; color: var(--muted); }
+.tick input { grid-column: 1; grid-row: 1; margin-top: 2px; }
+.tick span { grid-column: 3; grid-row: 1; min-width: 0; }
+.tick.done span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--ok); }
+.box { border-radius: 10px; padding: 10px 14px; font-size: 15px; display: grid; gap: 2px; }
+.box b { font-family: var(--f-display); font-weight: 800; letter-spacing: .02em; text-transform: uppercase; font-size: 13px; }
+.box.see { background: var(--ok-soft); }
+.box.see b { color: var(--ok); }
+.box.stop { background: var(--stop-soft); }
+.box.stop b { color: var(--stop); }
+.box.photo { background: var(--accent-soft); }
+.box.photo b { color: var(--accent-ink); }
+.boxes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.road { display: grid; gap: 8px; list-style: none; padding: 0; margin: 0; }
+.road li { display: grid; grid-template-columns: 3ch 1fr auto; gap: 12px; align-items: baseline; padding: 12px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.road .n { font-family: var(--f-display); font-weight: 900; font-size: 22px; color: var(--muted); }
+.road .t { display: grid; gap: 2px; min-width: 0; }
+.road .t b { font-family: var(--f-display); font-weight: 800; font-size: 18px; font-variation-settings: "wdth" 92; }
+.road .t span { font-size: 14px; color: var(--muted); }
+.road .later { font: 700 11px var(--f-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); white-space: nowrap; }
+.subhead { font-family: var(--f-display); font-weight: 800; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+
+/* where we are */
+.stages { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0; }
+.stages li { font: 500 13px var(--f-body); padding: 5px 11px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); }
+.stages li.ok { background: var(--ok-soft); border-color: transparent; color: var(--ok); }
+.stages li.now { background: var(--accent); border-color: transparent; color: #1b1600; font-weight: 600; }
+.stages li.wait { background: var(--info-soft); border-color: transparent; color: var(--info); }
+
+/* big diagrams */
+.figure { background: var(--paper); border-radius: 16px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.scroll svg { display: block; width: 100%; min-width: 640px; height: auto; }
+.figure .cap { font-size: 13px; color: #3c4743; }
+.map-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; align-items: start; }
+.legend { display: grid; gap: 6px; list-style: none; padding: 0; margin: 0; counter-reset: none; }
+.legend a { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: center; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; }
+.legend a:hover { border-color: var(--accent); }
+.legend a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.legend .k { width: 26px; height: 26px; border-radius: 50%; background: var(--o-ink); color: #ffffff; font: 700 13px var(--f-mono); display: grid; place-items: center; }
+.legend small { display: block; color: var(--muted); font-size: 12px; }
+.keyline { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: #3c4743; }
+.keyline span { display: inline-flex; align-items: center; gap: 8px; }
+.keyline i { display: inline-block; width: 28px; height: 0; border-top-width: 5px; border-top-style: solid; }
+.flow-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.flow-notes div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 14px; min-width: 0; }
+.flow-notes b { display: block; font-family: var(--f-display); font-weight: 800; font-size: 16px; margin-bottom: 2px; }
+
+/* resistor guide */
+.res-table { display: grid; gap: 10px; }
+.res-row { display: grid; grid-template-columns: 200px 120px 1fr; gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; min-width: 0; }
+.res-row .draw { background: var(--paper); border-radius: 8px; padding: 4px 6px; }
+.res-row .draw svg { width: 100%; height: auto; display: block; }
+.res-row .val { font-family: var(--f-display); font-weight: 900; font-size: 28px; font-variation-settings: "wdth" 80; line-height: 1; }
+.res-row .val small { display: block; font: 500 12px var(--f-mono); color: var(--muted); margin-top: 4px; }
+.res-row .use { font-size: 14px; min-width: 0; }
+.res-row .use span { display: block; font-size: 13px; color: var(--muted); }
+
+/* workshop rules */
+.rules { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.rule { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.rule svg { width: 44px; height: 44px; }
+.rule b { font-family: var(--f-display); font-weight: 800; font-size: 18px; font-variation-settings: "wdth" 90; line-height: 1.1; }
+.rule span { font-size: 14px; color: var(--muted); }
+
+@media (max-width: 860px) {
+  .map-grid { grid-template-columns: 1fr; }
+  .flow-notes { grid-template-columns: 1fr; }
+  .rules { grid-template-columns: repeat(2, 1fr); }
+  .res-row { grid-template-columns: 150px 1fr; }
+  .res-row .use { grid-column: 1 / -1; }
+}
+@media (max-width: 480px) {
+  .rules { grid-template-columns: 1fr; }
+}
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; }
+  .loop { grid-template-columns: repeat(2, 1fr); }
+  .boxes { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .loop { grid-template-columns: 1fr; }
+  .m-head { grid-template-columns: auto 1fr; }
+  .m-head .m-state { grid-column: 2; justify-self: start; }
+  .road li { grid-template-columns: 3ch 1fr; }
+  .road .later { grid-column: 2; }
+}
+@media (prefers-reduced-motion: reduce) { .bar > span { transition: none; } }
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Robot 01 · ocolește obstacolele</p>
+      <h1>Cartea Robotului <span class="num">01</span></h1>
+      <p class="lead">Construim împreună un robot pe roți care se plimbă prin cameră și se ferește singur de obstacole.
+        Mergem în misiuni mici, de 15–20 de minute, cu desene. Nu trebuie să știi nimic dinainte.</p>
+      <ol class="stages" aria-label="Unde suntem">
+        <li class="ok">✓ Schița</li><li class="ok">✓ Planul</li><li class="ok">✓ Lista de piese</li><li class="ok">✓ Piese primite</li>
+        <li class="wait">Creierul: pe drum</li><li class="now">Acum: Misiunea 0</li><li>Corpul</li><li>Cablarea</li><li>Programul</li><li>Primul drum</li>
+      </ol>
+      <div class="progress" aria-live="polite">
+        <div class="progress-row"><span>Piese găsite</span><span id="pcount">0 / 0</span></div>
+        <div class="bar"><span id="pbar"></span></div>
+        <div class="progress-row"><span>Pași de misiune făcuți</span><span id="scount">0 / 0</span></div>
+        <div class="bar"><span id="sbar"></span></div>
+        <p class="sync" id="sync">Bifele se salvează în acest browser.</p>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 400 250">
+        <rect x="0" y="0" width="400" height="250" fill="var(--paper)"/>
+        <line x1="20" y1="214" x2="380" y2="214" stroke="var(--o-metal-d)" stroke-width="2" stroke-dasharray="6 6"/>
+        <rect x="70" y="120" width="250" height="14" rx="7" fill="var(--o-acrylic)" stroke="var(--o-ink)" stroke-width="2"/>
+        <rect x="96" y="136" width="120" height="30" rx="4" fill="var(--o-pcb-black)"/>
+        <g fill="var(--o-white)"><rect x="104" y="141" width="14" height="20" rx="3"/><rect x="122" y="141" width="14" height="20" rx="3"/><rect x="140" y="141" width="14" height="20" rx="3"/><rect x="158" y="141" width="14" height="20" rx="3"/><rect x="176" y="141" width="14" height="20" rx="3"/><rect x="194" y="141" width="14" height="20" rx="3"/></g>
+        <rect x="140" y="88" width="120" height="32" rx="3" fill="var(--o-white)" stroke="var(--o-ink)" stroke-width="2"/>
+        <rect x="150" y="70" width="58" height="22" rx="3" fill="var(--o-pcb-red)"/>
+        <rect x="156" y="62" width="46" height="10" rx="2" fill="var(--o-pcb-black)"/>
+        <rect x="216" y="76" width="40" height="16" rx="2" fill="var(--o-pcb-black)"/>
+        <rect x="224" y="72" width="22" height="8" rx="2" fill="var(--o-metal)"/>
+        <rect x="282" y="84" width="16" height="40" rx="2" fill="var(--o-metal-d)"/>
+        <rect x="296" y="78" width="12" height="52" rx="2" fill="var(--o-pcb-blue)"/>
+        <circle cx="314" cy="92" r="9" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="2"/>
+        <circle cx="314" cy="116" r="9" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="2"/>
+        <path d="M332 92 q14 12 0 24" fill="none" stroke="var(--o-orange)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M344 84 q24 20 0 40" fill="none" stroke="var(--o-orange)" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+        <path d="M356 76 q34 28 0 56" fill="none" stroke="var(--o-orange)" stroke-width="3" stroke-linecap="round" opacity=".45"/>
+        <rect x="200" y="136" width="70" height="26" rx="4" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/>
+        <circle cx="236" cy="170" r="42" fill="var(--o-rubber)"/>
+        <circle cx="236" cy="170" r="22" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/>
+        <circle cx="236" cy="170" r="5" fill="var(--o-white)"/>
+        <rect x="96" y="134" width="14" height="40" fill="var(--o-metal-d)"/>
+        <circle cx="103" cy="198" r="15" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="2"/>
+      </svg>
+    </div>
+  </header>
+
+  <section aria-labelledby="h-loop">
+    <div class="sec-head">
+      <p class="eyebrow">Cum lucrăm</p>
+      <h2 id="h-loop">O misiune = un drum dus-întors prin chat</h2>
+      <p class="lead">Nu treci la misiunea următoare până nu verific poza. Așa prindem greșelile cât sunt mici.</p>
+    </div>
+    <ol class="loop">
+      <li><b>Citești misiunea</b><span>Vezi de ce ai nevoie și ce trebuie să iasă la final.</span></li>
+      <li><b>Faci pașii</b><span>Unul câte unul, bifezi pe măsură ce îi termini.</span></li>
+      <li><b>Faci o poză</b><span>De sus, cu lumină bună, să se vadă piesele clar.</span></li>
+      <li><b>O trimiți în chat</b><span>O lipești direct în conversația din VS Code.</span></li>
+      <li><b>Eu verific</b><span>Îți spun dacă e bine sau ce corectăm, apoi deblocăm misiunea următoare.</span></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="h-rules">
+    <div class="sec-head">
+      <p class="eyebrow">Înainte de orice</p>
+      <h2 id="h-rules">Patru reguli de atelier</h2>
+      <p class="lead">Le respectăm la fiecare misiune. Dacă una nu se poate respecta, ne oprim și vorbim în chat.</p>
+    </div>
+    <div class="rules">
+      <div class="rule">
+        <svg viewBox="0 0 44 44" aria-hidden="true"><rect x="4" y="18" width="22" height="9" rx="4" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><rect x="26" y="20" width="10" height="5" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="1.5"/><path d="M36 20 L42 22.5 L36 25 Z" fill="var(--stop)"/></svg>
+        <b>Letconul stă în mână sau în suport</b>
+        <span>Niciodată pe masă. Vârful nu se atinge, nici la 10 minute după ce l-ai scos din priză.</span>
+      </div>
+      <div class="rule">
+        <svg viewBox="0 0 44 44" aria-hidden="true"><rect x="14" y="8" width="16" height="30" rx="3" fill="var(--o-green)" stroke="var(--o-ink)" stroke-width="2"/><rect x="18" y="4" width="8" height="5" rx="1" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="1.5"/><path d="M8 40 L36 6" stroke="var(--stop)" stroke-width="3"/></svg>
+        <b>Plusul nu atinge minusul</b>
+        <span>Nici cu un fir, nici cu un clește, nici cu o șurubelniță. O baterie caldă sau umflată nu se mai folosește.</span>
+      </div>
+      <div class="rule">
+        <svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="24" r="14" fill="var(--o-rubber)"/><circle cx="22" cy="24" r="6" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="1.5"/><path d="M8 8 h28" stroke="var(--info)" stroke-width="3" stroke-linecap="round"/><path d="M14 4 l-6 4 6 4 M30 4 l6 4 -6 4" fill="none" stroke="var(--info)" stroke-width="2"/></svg>
+        <b>Prima pornire: roțile în aer</b>
+        <span>Robotul stă pe o cutie, cu roțile în gol. Măsurăm întâi cu multimetrul și abia apoi pornim.</span>
+      </div>
+      <div class="rule">
+        <svg viewBox="0 0 44 44" aria-hidden="true"><rect x="8" y="10" width="28" height="24" rx="4" fill="var(--o-pcb-black)"/><path d="M13 28 L31 22 L31 16 L13 18 Z" fill="var(--o-rubber)" stroke="var(--o-metal-d)" stroke-width="1.5"/><text x="15" y="25" font-family="JetBrains Mono, monospace" font-size="7" font-weight="700" fill="#ffffff">O</text></svg>
+        <b>Fum, miros sau căldură: oprești</b>
+        <span>Întrerupătorul pe O, apoi scoți o baterie din cutie. Abia după aceea te uiți ce s-a întâmplat.</span>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-words">
+    <div class="sec-head">
+      <p class="eyebrow">Cuvinte noi</p>
+      <h2 id="h-words">Șase cuvinte pe care le vei auzi des</h2>
+    </div>
+    <dl class="words">
+      <div class="word"><dt>Plus (+) și minus (−)</dt><dd>Cele două capete ale bateriei. Firul roșu e plusul, firul negru e minusul. Nu le inversăm niciodată.</dd></div>
+      <div class="word"><dt>Tensiune, în volți (V)</dt><dd>Cât de tare „împinge” bateria curentul. Robotul nostru are în jur de 7,2 V, cât să nu fie periculos.</dd></div>
+      <div class="word"><dt>Curent, în amperi (A)</dt><dd>Cât curent curge prin fir. Motoarele cer mult, creierul cere puțin.</dd></div>
+      <div class="word"><dt>GND („masa”)</dt><dd>Minusul comun. Toate plăcile robotului au minusul legat împreună, altfel nu se înțeleg între ele.</dd></div>
+      <div class="word"><dt>Lipitură</dt><dd>Două fire „lipite” cu metal topit (fludor). Ține bine și trece curentul prin ea.</dd></div>
+      <div class="word"><dt>Scurtcircuit</dt><dd>Când plusul atinge direct minusul. Firele se încing. De asta avem siguranța de 3 A.</dd></div>
+    </dl>
+  </section>
+
+  <section aria-labelledby="h-map">
+    <div class="sec-head">
+      <p class="eyebrow">Robotul văzut de sus</p>
+      <h2 id="h-map">Unde stă fiecare piesă</h2>
+      <p class="lead">Așa va arăta robotul gata asamblat. Ce e desenat cu linie punctată stă sub placa transparentă.
+        Apasă pe un nume din listă ca să sari la cardul piesei.</p>
+    </div>
+    <div class="map-grid">
+      <figure class="figure" style="margin:0">
+        <div class="scroll">
+          <svg viewBox="0 0 760 440" role="img" aria-label="Robotul văzut de sus, cu piesele numerotate">
+            <rect width="760" height="440" fill="var(--paper)"/>
+            <text x="630" y="30" font-family="Lexend, sans-serif" font-size="15" font-weight="600" fill="var(--o-ink)">FAȚĂ →</text>
+            <text x="24" y="30" font-family="Lexend, sans-serif" font-size="15" font-weight="600" fill="var(--o-ink)">← SPATE</text>
+            <!-- wheels and motors (under the plate) -->
+            <rect x="385" y="14" width="130" height="40" rx="10" fill="var(--o-rubber)"/>
+            <rect x="385" y="386" width="130" height="40" rx="10" fill="var(--o-rubber)"/>
+            <rect x="395" y="64" width="110" height="56" rx="6" fill="var(--o-yellow)" fill-opacity=".55" stroke="var(--o-ink)" stroke-width="2" stroke-dasharray="7 5"/>
+            <rect x="395" y="320" width="110" height="56" rx="6" fill="var(--o-yellow)" fill-opacity=".55" stroke="var(--o-ink)" stroke-width="2" stroke-dasharray="7 5"/>
+            <!-- plate -->
+            <rect x="110" y="56" width="500" height="328" rx="64" fill="var(--o-acrylic)" fill-opacity=".75" stroke="var(--o-ink)" stroke-width="2.5"/>
+            <!-- under the plate -->
+            <rect x="170" y="150" width="190" height="140" rx="6" fill="none" stroke="var(--o-ink)" stroke-width="2" stroke-dasharray="7 5"/>
+            <circle cx="160" cy="220" r="24" fill="var(--o-metal)" fill-opacity=".6" stroke="var(--o-ink)" stroke-width="2" stroke-dasharray="6 5"/>
+            <!-- on top -->
+            <rect x="190" y="168" width="104" height="104" rx="4" fill="var(--o-pcb-red)"/>
+            <rect x="214" y="176" width="56" height="36" fill="var(--o-pcb-black)"/>
+            <rect x="190" y="230" width="22" height="30" rx="2" fill="var(--o-blue)"/>
+            <rect x="272" y="230" width="22" height="30" rx="2" fill="var(--o-blue)"/>
+            <rect x="320" y="150" width="210" height="140" rx="4" fill="var(--o-white)" stroke="var(--o-ink)" stroke-width="2"/>
+            <rect x="345" y="182" width="150" height="70" rx="3" fill="var(--o-pcb-black)"/>
+            <rect x="400" y="190" width="56" height="52" rx="2" fill="var(--o-metal)"/>
+            <rect x="345" y="207" width="16" height="20" rx="2" fill="var(--o-metal-d)"/>
+            <rect x="548" y="160" width="20" height="120" rx="2" fill="var(--o-white)" stroke="var(--o-ink)" stroke-width="2"/>
+            <rect x="568" y="166" width="22" height="108" rx="2" fill="var(--o-pcb-blue)"/>
+            <rect x="590" y="176" width="22" height="36" rx="6" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="2"/>
+            <rect x="590" y="228" width="22" height="36" rx="6" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="2"/>
+            <path d="M628 194 q14 26 0 52" fill="none" stroke="var(--o-orange)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M644 184 q22 36 0 72" fill="none" stroke="var(--o-orange)" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+            <rect x="196" y="318" width="44" height="28" rx="4" fill="var(--o-pcb-black)"/>
+            <rect x="230" y="94" width="76" height="26" rx="3" fill="var(--o-white)" stroke="var(--o-ink)" stroke-width="2"/>
+            <rect x="160" y="100" width="54" height="14" rx="6" fill="var(--o-pcb-black)"/>
+            <path d="M140 107 H160 M214 107 H230" stroke="var(--o-wire-red)" stroke-width="4"/>
+            <!-- callout badges -->
+            <g font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" text-anchor="middle">
+              <g><circle cx="600" cy="140" r="14" fill="var(--o-ink)"/><text x="600" y="145" fill="#ffffff">1</text></g>
+              <g><circle cx="428" cy="216" r="14" fill="var(--o-ink)"/><text x="428" y="221" fill="#ffffff">2</text></g>
+              <g><circle cx="508" cy="272" r="14" fill="var(--o-ink)"/><text x="508" y="277" fill="#ffffff">3</text></g>
+              <g><circle cx="242" cy="226" r="14" fill="var(--o-ink)"/><text x="242" y="231" fill="#ffffff">4</text></g>
+              <g><circle cx="450" cy="92" r="14" fill="var(--o-ink)"/><text x="450" y="97" fill="#ffffff">5</text></g>
+              <g><circle cx="450" cy="34" r="14" fill="var(--o-ink)"/><text x="450" y="39" fill="#ffffff">6</text></g>
+              <g><circle cx="160" cy="220" r="14" fill="var(--o-ink)"/><text x="160" y="225" fill="#ffffff">7</text></g>
+              <g><circle cx="335" cy="300" r="14" fill="var(--o-ink)"/><text x="335" y="305" fill="#ffffff">8</text></g>
+              <g><circle cx="218" cy="332" r="14" fill="var(--o-ink)"/><text x="218" y="337" fill="#ffffff">9</text></g>
+              <g><circle cx="268" cy="80" r="14" fill="var(--o-ink)"/><text x="268" y="85" fill="#ffffff">10</text></g>
+            </g>
+          </svg>
+        </div>
+        <p class="cap">Desen de principiu. Locul exact al fiecărei piese îl fixăm după ce văd kitul tău despachetat.</p>
+      </figure>
+      <ol class="legend" id="legend">
+        <li><a href="#part-hcsr04" data-part="hcsr04"><span class="k">1</span><span>Ochii de liliac<small>în față, pe suportul printat</small></span></a></li>
+        <li><a href="#part-esp32" data-part="esp32"><span class="k">2</span><span>Creierul<small>înfipt în placa cu găurele</small></span></a></li>
+        <li><a href="#part-breadboard" data-part="breadboard"><span class="k">3</span><span>Placa cu găurele<small>lipită cu spatele adeziv</small></span></a></li>
+        <li><a href="#part-l298n" data-part="l298n"><span class="k">4</span><span>Mușchii<small>prinși cu bandă dublu-adezivă</small></span></a></li>
+        <li><a href="#part-motors" data-part="motors"><span class="k">5</span><span>Motoarele<small>sub placă, câte unul pe fiecare parte</small></span></a></li>
+        <li><a href="#part-wheels" data-part="wheels"><span class="k">6</span><span>Roțile<small>pe axul motoarelor</small></span></a></li>
+        <li><a href="#part-caster" data-part="caster"><span class="k">7</span><span>Roata liberă<small>sub placă, în spate</small></span></a></li>
+        <li><a href="#part-holder6" data-part="holder6"><span class="k">8</span><span>Cutia de baterii<small>sub placă, la mijloc</small></span></a></li>
+        <li><a href="#part-switch" data-part="switch"><span class="k">9</span><span>Întrerupătorul<small>în spate, ușor de apăsat</small></span></a></li>
+        <li><a href="#part-fuseholder" data-part="fuseholder"><span class="k">10</span><span>Siguranța și clema<small>pe firul de plus, lângă baterii</small></span></a></li>
+      </ol>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-flow">
+    <div class="sec-head">
+      <p class="eyebrow">Cum circulă curentul</p>
+      <h2 id="h-flow">Drumul energiei</h2>
+      <p class="lead">Curentul pleacă din baterii, trece prin paznic (siguranța) și prin întrerupător și ajunge la mușchi.
+        Mușchii îl dau motoarelor și fac din el și 5 V pentru creier și ochi. Creierul doar dă comenzi.</p>
+    </div>
+    <figure class="figure" style="margin:0">
+      <div class="scroll">
+        <svg viewBox="0 0 900 380" role="img" aria-label="Schema drumului energiei de la baterii la motoare, creier și senzor">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="var(--o-blue)"/></marker>
+          </defs>
+          <rect width="900" height="380" fill="var(--paper)"/>
+          <!-- thick power lines -->
+          <g fill="none" stroke-linejoin="round">
+            <path d="M160 170 H200 M310 170 H350 M470 170 H520" stroke="var(--o-wire-red)" stroke-width="7"/>
+            <path d="M540 240 V256 H90 V220" stroke="var(--o-wire-black)" stroke-width="7"/>
+            <path d="M680 135 H715 V62 H740" stroke="var(--o-wire-red)" stroke-width="6"/>
+            <path d="M680 150 H725 V80 H740" stroke="var(--o-wire-black)" stroke-width="6"/>
+            <path d="M680 205 H725 V272 H740" stroke="var(--o-wire-red)" stroke-width="6"/>
+            <path d="M680 220 H715 V290 H740" stroke="var(--o-wire-black)" stroke-width="6"/>
+            <path d="M640 240 V300 M612 240 V276 H330 V300" stroke="var(--o-orange)" stroke-width="5"/>
+            <path d="M566 300 V246" stroke="var(--o-blue)" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#arr)"/>
+            <path d="M410 330 H514" stroke="var(--o-blue)" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#arr)"/>
+          </g>
+          <!-- boxes -->
+          <g font-family="Lexend, sans-serif" text-anchor="middle" fill="var(--o-ink)">
+            <rect x="20" y="130" width="140" height="90" rx="10" fill="var(--o-white)" stroke="var(--o-ink)" stroke-width="2"/>
+            <text x="90" y="166" font-size="17" font-weight="600">Baterii</text><text x="90" y="190" font-size="13">6 × AA · 7,2 V</text>
+            <rect x="200" y="145" width="110" height="50" rx="10" fill="var(--o-white)" stroke="var(--o-ink)" stroke-width="2"/>
+            <text x="255" y="166" font-size="15" font-weight="600">Siguranța</text><text x="255" y="185" font-size="12">3 A</text>
+            <rect x="350" y="145" width="120" height="50" rx="10" fill="var(--o-white)" stroke="var(--o-ink)" stroke-width="2"/>
+            <text x="410" y="166" font-size="15" font-weight="600">Întrerupător</text><text x="410" y="185" font-size="12">I = pornit · O = oprit</text>
+            <rect x="520" y="110" width="160" height="130" rx="10" fill="var(--o-pcb-red)" stroke="var(--o-ink)" stroke-width="2"/>
+            <text x="600" y="160" font-size="18" font-weight="600" fill="#ffffff">Mușchii</text><text x="600" y="182" font-size="13" fill="#ffffff">L298N</text>
+            <text x="600" y="228" font-size="11" fill="#ffffff">iese 5 V ↓</text>
+            <rect x="740" y="40" width="140" height="60" rx="10" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/>
+            <text x="810" y="76" font-size="15" font-weight="600">Motor stâng</text>
+            <rect x="740" y="250" width="140" height="60" rx="10" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/>
+            <text x="810" y="286" font-size="15" font-weight="600">Motor drept</text>
+            <rect x="520" y="300" width="160" height="60" rx="10" fill="var(--o-pcb-black)" stroke="var(--o-ink)" stroke-width="2"/>
+            <text x="600" y="326" font-size="16" font-weight="600" fill="#ffffff">Creierul</text><text x="600" y="346" font-size="12" fill="#ffffff">ESP32 · 3,3 V</text>
+            <rect x="250" y="300" width="160" height="60" rx="10" fill="var(--o-pcb-blue)" stroke="var(--o-ink)" stroke-width="2"/>
+            <text x="330" y="326" font-size="16" font-weight="600" fill="#ffffff">Ochii</text><text x="330" y="346" font-size="12" fill="#ffffff">HC-SR04 · 5 V</text>
+          </g>
+          <g font-family="Lexend, sans-serif" font-size="12" fill="var(--o-ink)">
+            <text x="164" y="160" font-size="11">7,2 V</text>
+            <text x="110" y="248">minus comun (GND): toate plăcile</text>
+            <text x="558" y="293" text-anchor="end" fill="var(--o-blue)">comenzi</text>
+            <text x="414" y="322" fill="var(--o-blue)">ecou</text>
+            <text x="420" y="350" font-size="11">prin divizor</text>
+            <text x="495" y="216" font-size="11" text-anchor="middle">+1000 µF</text>
+          </g>
+        </svg>
+      </div>
+      <div class="keyline">
+        <span><i style="border-top-color: var(--o-wire-red)"></i>plus, curent mare</span>
+        <span><i style="border-top-color: var(--o-wire-black)"></i>minus (GND)</span>
+        <span><i style="border-top-color: var(--o-orange)"></i>5 V pentru creier și ochi</span>
+        <span><i style="border-top-color: var(--o-blue); border-top-style: dashed"></i>semnale (curent foarte mic)</span>
+      </div>
+    </figure>
+    <div class="flow-notes">
+      <div><b>De ce siguranța e prima</b>Stă imediat după baterii. Dacă orice fir de după ea se scurtcircuitează, ea se arde prima și oprește tot.</div>
+      <div><b>De ce minusul e comun</b>Creierul trimite comenzi „față de minus”. Dacă mușchii au alt minus decât creierul, nu se înțeleg și robotul face prostii.</div>
+      <div><b>De ce ecoul trece prin rezistențe</b>Ochii răspund cu 5 V, dar creierul suportă cel mult 3,6 V. Cele două rezistențe coboară semnalul la 3 V.</div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-parts">
+    <div class="sec-head">
+      <p class="eyebrow">Misiunea 0 · inventar</p>
+      <h2 id="h-parts">Cunoaște piesele</h2>
+      <p class="lead">Fiecare piesă cu numele ei simplu, ce scrie pe ambalaj și la ce ne folosește. Găsește-o pe masă și bifeaz-o.</p>
+    </div>
+    <div class="chips" role="group" aria-label="Filtrează piesele" id="chips"></div>
+    <div class="parts" id="parts"></div>
+  </section>
+
+  <section aria-labelledby="h-res">
+    <div class="sec-head">
+      <p class="eyebrow">Frânele de curent</p>
+      <h2 id="h-res">Cum recunoști cele patru rezistențe</h2>
+      <p class="lead">Rezistențele tale par albastre, cu 5 benzi colorate. Citești benzile dinspre capătul unde sunt mai înghesuite;
+        ultima bandă, mai depărtată, e de obicei maro. Când nu ești sigur, le măsori cu multimetrul pe Ω (treapta 20k).</p>
+    </div>
+    <div class="res-table" id="res"></div>
+  </section>
+
+  <section aria-labelledby="h-missions">
+    <div class="sec-head">
+      <p class="eyebrow">Construcția</p>
+      <h2 id="h-missions">Misiunile</h2>
+      <p class="lead">Misiunile 0 și 1 sunt gata. Pe următoarele le scriem în detaliu după ce văd kitul despachetat,
+        ca desenele să arate exact piesele tale.</p>
+    </div>
+    <div class="missions" id="missions"></div>
+
+    <p class="subhead">Ce urmează</p>
+    <ol class="road" id="road"></ol>
+  </section>
+
+  <footer>
+    Robot 01 · ghid de asamblare · versiunea din 9 octombrie 2026. Sursa de adevăr pentru piese rămâne lista BOM a robotului;
+    pentru pini, PINOUT.md. Dacă ceva din pagină nu se potrivește cu ce ai pe masă, spune-mi în chat.
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---- drawings (simple, on the light bench-paper panel) ----
+  const S = (inner) => '<svg viewBox="0 0 160 100" aria-hidden="true">' + inner + '</svg>';
+  const K = 'stroke="var(--o-ink)" stroke-width="2"';
+  const ART = {
+    esp32: S('<rect x="20" y="22" width="120" height="56" rx="4" fill="var(--o-pcb-black)"/>' +
+      '<rect x="62" y="28" width="56" height="44" rx="3" fill="var(--o-metal)" ' + K + '/>' +
+      '<text x="90" y="56" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="var(--o-ink)">E32</text>' +
+      '<rect x="10" y="40" width="16" height="20" rx="3" fill="var(--o-metal-d)"/>' +
+      '<g fill="var(--o-metal)">' + Array.from({ length: 13 }, (_, i) => '<rect x="' + (26 + i * 8.6) + '" y="16" width="4" height="8"/><rect x="' + (26 + i * 8.6) + '" y="76" width="4" height="8"/>').join('') + '</g>' +
+      '<circle cx="38" cy="32" r="3" fill="var(--o-white)"/><circle cx="38" cy="68" r="3" fill="var(--o-white)"/>'),
+    hcsr04: S('<rect x="18" y="24" width="124" height="52" rx="4" fill="var(--o-pcb-blue)"/>' +
+      '<circle cx="50" cy="50" r="20" fill="var(--o-metal)" ' + K + '/><circle cx="50" cy="50" r="12" fill="var(--o-metal-d)"/>' +
+      '<circle cx="110" cy="50" r="20" fill="var(--o-metal)" ' + K + '/><circle cx="110" cy="50" r="12" fill="var(--o-metal-d)"/>' +
+      '<g fill="var(--o-metal)"><rect x="68" y="76" width="4" height="12"/><rect x="76" y="76" width="4" height="12"/><rect x="84" y="76" width="4" height="12"/><rect x="92" y="76" width="4" height="12"/></g>'),
+    l298n: S('<rect x="34" y="14" width="92" height="72" rx="4" fill="var(--o-pcb-red)"/>' +
+      '<rect x="60" y="20" width="40" height="34" fill="var(--o-pcb-black)"/>' +
+      '<g fill="var(--o-pcb-black)"><rect x="60" y="14" width="4" height="8"/><rect x="68" y="14" width="4" height="8"/><rect x="76" y="14" width="4" height="8"/><rect x="84" y="14" width="4" height="8"/><rect x="92" y="14" width="4" height="8"/></g>' +
+      '<rect x="18" y="26" width="18" height="22" rx="2" fill="var(--o-blue)"/><rect x="124" y="26" width="18" height="22" rx="2" fill="var(--o-blue)"/>' +
+      '<rect x="56" y="70" width="34" height="14" rx="2" fill="var(--o-blue)"/>' +
+      '<g fill="var(--o-metal)"><rect x="96" y="72" width="3" height="10"/><rect x="102" y="72" width="3" height="10"/><rect x="108" y="72" width="3" height="10"/><rect x="114" y="72" width="3" height="10"/></g>'),
+    chassis: S('<rect x="20" y="16" width="120" height="68" rx="18" fill="var(--o-acrylic)" ' + K + '/>' +
+      '<g fill="var(--paper)" ' + K + '><circle cx="44" cy="36" r="4"/><circle cx="80" cy="30" r="4"/><circle cx="116" cy="36" r="4"/><circle cx="44" cy="64" r="4"/><circle cx="116" cy="64" r="4"/>' +
+      '<rect x="66" y="48" width="28" height="8" rx="4"/><rect x="28" y="46" width="8" height="12" rx="3"/><rect x="124" y="46" width="8" height="12" rx="3"/></g>'),
+    motor: S('<rect x="22" y="30" width="72" height="40" rx="4" fill="var(--o-yellow)" ' + K + '/>' +
+      '<rect x="94" y="36" width="44" height="28" rx="12" fill="var(--o-metal)" ' + K + '/>' +
+      '<rect x="56" y="16" width="10" height="16" rx="2" fill="var(--o-white)" ' + K + '/><rect x="56" y="68" width="10" height="16" rx="2" fill="var(--o-white)" ' + K + '/>' +
+      '<g fill="var(--o-metal-d)"><rect x="138" y="42" width="6" height="4"/><rect x="138" y="54" width="6" height="4"/></g>'),
+    wheel: S('<circle cx="80" cy="50" r="40" fill="var(--o-rubber)"/>' +
+      '<circle cx="80" cy="50" r="26" fill="var(--o-yellow)" ' + K + '/>' +
+      '<g stroke="var(--o-ink)" stroke-width="3"><line x1="80" y1="26" x2="80" y2="74"/><line x1="56" y1="50" x2="104" y2="50"/></g>' +
+      '<circle cx="80" cy="50" r="7" fill="var(--o-white)" ' + K + '/>'),
+    caster: S('<rect x="46" y="22" width="68" height="12" rx="3" fill="var(--o-metal-d)"/>' +
+      '<path d="M58 34 L102 34 L96 54 L64 54 Z" fill="var(--o-metal)" ' + K + '/>' +
+      '<circle cx="80" cy="64" r="16" fill="var(--o-metal)" ' + K + '/><circle cx="74" cy="58" r="4" fill="var(--o-white)"/>' +
+      '<circle cx="54" cy="28" r="3" fill="var(--paper)"/><circle cx="106" cy="28" r="3" fill="var(--paper)"/>'),
+    switch: S('<rect x="44" y="26" width="72" height="48" rx="6" fill="var(--o-pcb-black)"/>' +
+      '<path d="M54 64 L106 50 L106 36 L54 40 Z" fill="var(--o-rubber)" stroke="var(--o-metal-d)" stroke-width="2"/>' +
+      '<text x="64" y="52" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="var(--o-white)">I</text>' +
+      '<text x="92" y="48" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="var(--o-white)">O</text>' +
+      '<g fill="var(--o-metal)"><rect x="66" y="74" width="6" height="12"/><rect x="88" y="74" width="6" height="12"/></g>'),
+    sonarMount: S('<path d="M30 74 L130 74 L130 66 L100 66 L100 24 L60 24 L60 66 L30 66 Z" fill="var(--o-white)" ' + K + '/>' +
+      '<circle cx="72" cy="40" r="7" fill="var(--paper)" ' + K + '/><circle cx="88" cy="40" r="7" fill="var(--paper)" ' + K + '/>' +
+      '<circle cx="44" cy="70" r="3" fill="var(--o-ink)"/><circle cx="116" cy="70" r="3" fill="var(--o-ink)"/>'),
+    holder6: S('<rect x="18" y="22" width="110" height="56" rx="4" fill="var(--o-pcb-black)"/>' +
+      '<g fill="var(--o-rubber)" stroke="var(--o-metal-d)" stroke-width="1.5"><rect x="24" y="28" width="98" height="12" rx="6"/><rect x="24" y="44" width="98" height="12" rx="6"/><rect x="24" y="60" width="98" height="12" rx="6"/></g>' +
+      '<path d="M128 40 C146 40 146 58 150 64" fill="none" stroke="var(--o-wire-red)" stroke-width="3"/>' +
+      '<path d="M128 56 C140 56 140 66 150 70" fill="none" stroke="var(--o-wire-black)" stroke-width="3"/>' +
+      '<rect x="146" y="62" width="10" height="14" rx="2" fill="var(--o-metal-d)"/>'),
+    batteries: S('<g>' + [24, 60, 96].map((x) => '<rect x="' + x + '" y="24" width="30" height="62" rx="5" fill="var(--o-green)" ' + K + '/><rect x="' + (x + 10) + '" y="16" width="10" height="9" rx="2" fill="var(--o-metal)" ' + K + '/><text x="' + (x + 15) + '" y="46" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="var(--o-white)">+</text>').join('') + '</g>' +
+      '<text x="140" y="60" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="var(--o-ink)">×8</text>'),
+    charger: S('<rect x="22" y="24" width="116" height="56" rx="10" fill="var(--o-white)" ' + K + '/>' +
+      '<g fill="var(--paper)" stroke="var(--o-metal-d)" stroke-width="1.5"><rect x="32" y="34" width="18" height="36" rx="4"/><rect x="54" y="34" width="18" height="36" rx="4"/><rect x="76" y="34" width="18" height="36" rx="4"/><rect x="98" y="34" width="18" height="36" rx="4"/></g>' +
+      '<g fill="var(--o-green)"><circle cx="41" cy="30" r="2"/><circle cx="63" cy="30" r="2"/><circle cx="85" cy="30" r="2"/><circle cx="107" cy="30" r="2"/></g>' +
+      '<rect x="122" y="44" width="10" height="16" rx="2" fill="var(--o-metal-d)"/>'),
+    fuses: S('<rect x="14" y="40" width="132" height="20" rx="10" fill="var(--o-white)" fill-opacity=".55" ' + K + '/>' +
+      '<rect x="14" y="40" width="24" height="20" rx="3" fill="var(--o-metal)" ' + K + '/><rect x="122" y="40" width="24" height="20" rx="3" fill="var(--o-metal)" ' + K + '/>' +
+      '<path d="M38 50 C60 42 70 58 80 50 S100 42 122 50" fill="none" stroke="var(--o-metal-d)" stroke-width="2"/>' +
+      '<text x="80" y="82" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="var(--o-ink)">3 A</text>'),
+    fuseHolder: S('<path d="M6 50 L44 50" stroke="var(--o-wire-red)" stroke-width="4"/><path d="M116 50 L154 50" stroke="var(--o-wire-red)" stroke-width="4"/>' +
+      '<rect x="42" y="38" width="38" height="24" rx="6" fill="var(--o-pcb-black)"/><rect x="80" y="38" width="38" height="24" rx="6" fill="var(--o-rubber)"/>' +
+      '<line x1="80" y1="36" x2="80" y2="64" stroke="var(--o-metal)" stroke-width="2"/>'),
+    terminal: S('<rect x="16" y="32" width="128" height="40" rx="3" fill="var(--o-white)" ' + K + '/>' +
+      [0, 1, 2, 3].map((i) => '<line x1="' + (48 + i * 32) + '" y1="32" x2="' + (48 + i * 32) + '" y2="72" stroke="var(--o-metal-d)" stroke-width="1.5"/><circle cx="' + (32 + i * 32) + '" cy="44" r="7" fill="var(--o-metal)" ' + K + '/><line x1="' + (28 + i * 32) + '" y1="44" x2="' + (36 + i * 32) + '" y2="44" stroke="var(--o-ink)" stroke-width="2"/>').join('') +
+      '<path d="M2 62 L20 62" stroke="var(--o-wire-red)" stroke-width="4"/><path d="M140 62 L158 62" stroke="var(--o-wire-red)" stroke-width="4"/>'),
+    redBlack: S('<path d="M10 40 C50 10 90 70 150 34" fill="none" stroke="var(--o-wire-red)" stroke-width="6" stroke-linecap="round"/>' +
+      '<path d="M10 62 C50 32 90 92 150 56" fill="none" stroke="var(--o-wire-black)" stroke-width="6" stroke-linecap="round"/>' +
+      '<text x="18" y="24" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="var(--o-wire-red)">+</text>' +
+      '<text x="18" y="90" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="var(--o-ink)">−</text>'),
+    breadboard: S('<rect x="10" y="16" width="140" height="68" rx="4" fill="var(--o-white)" ' + K + '/>' +
+      '<line x1="16" y1="22" x2="144" y2="22" stroke="var(--o-wire-red)" stroke-width="1.5"/><line x1="16" y1="78" x2="144" y2="78" stroke="var(--o-blue)" stroke-width="1.5"/>' +
+      '<rect x="12" y="48" width="136" height="4" fill="var(--paper)"/>' +
+      '<g fill="var(--o-metal-d)">' + Array.from({ length: 16 }, (_, c) => [30, 36, 42, 58, 64, 70].map((y) => '<rect x="' + (18 + c * 8) + '" y="' + y + '" width="3" height="3"/>').join('')).join('') + '</g>'),
+    dupont: S([['var(--o-wire-red)', 26], ['var(--o-orange)', 40], ['var(--o-yellow)', 54], ['var(--o-green)', 68], ['var(--o-blue)', 82]].map(([c, y]) =>
+      '<rect x="14" y="' + (y - 5) + '" width="18" height="10" rx="1" fill="var(--o-pcb-black)"/><line x1="32" y1="' + y + '" x2="128" y2="' + y + '" stroke="' + c + '" stroke-width="5"/><rect x="128" y="' + (y - 5) + '" width="18" height="10" rx="1" fill="var(--o-pcb-black)"/><line x1="146" y1="' + y + '" x2="154" y2="' + y + '" stroke="var(--o-metal)" stroke-width="2"/>').join('')),
+    resistor: S('<line x1="8" y1="50" x2="152" y2="50" stroke="var(--o-metal-d)" stroke-width="3"/>' +
+      '<rect x="46" y="36" width="68" height="28" rx="12" fill="var(--o-beige)" ' + K + '/>' +
+      '<g><rect x="58" y="36" width="6" height="28" fill="var(--o-wire-red)"/><rect x="70" y="36" width="6" height="28" fill="var(--o-wire-red)"/><rect x="82" y="36" width="6" height="28" fill="var(--o-wire-red)"/><rect x="100" y="36" width="5" height="28" fill="#b28a22"/></g>'),
+    capacitor: S('<rect x="56" y="12" width="48" height="62" rx="8" fill="var(--o-pcb-black)"/>' +
+      '<rect x="86" y="12" width="12" height="62" fill="var(--o-metal-d)"/>' +
+      '<text x="92" y="34" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="var(--o-white)">−</text>' +
+      '<text x="92" y="58" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="var(--o-white)">−</text>' +
+      '<line x1="70" y1="74" x2="70" y2="96" stroke="var(--o-metal-d)" stroke-width="3"/><line x1="92" y1="74" x2="92" y2="88" stroke="var(--o-metal-d)" stroke-width="3"/>' +
+      '<text x="40" y="94" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="var(--o-ink)">+ lung</text>' +
+      '<text x="100" y="94" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="var(--o-ink)">− scurt</text>'),
+    heatShrink: S([['var(--o-wire-red)', 20], ['var(--o-blue)', 38], ['var(--o-yellow)', 56], ['var(--o-green)', 74]].map(([c, y], i) =>
+      '<rect x="' + (20 + i * 6) + '" y="' + y + '" width="' + (100 - i * 10) + '" height="11" rx="5" fill="' + c + '" ' + K + '/>').join('') +
+      '<path d="M130 70 q-6 -10 0 -20 q6 -10 0 -20" fill="none" stroke="var(--o-orange)" stroke-width="3" stroke-linecap="round"/>'),
+    croc: S('<path d="M20 44 L96 34 L100 46 L24 52 Z" fill="#c8813f" ' + K + '/><path d="M20 56 L96 66 L100 54 L24 48 Z" fill="#c8813f" ' + K + '/>' +
+      '<rect x="96" y="36" width="44" height="28" rx="10" fill="var(--o-wire-red)" ' + K + '/>' +
+      '<g stroke="var(--o-ink)" stroke-width="1.5"><line x1="30" y1="44" x2="30" y2="50"/><line x1="40" y1="43" x2="40" y2="50"/><line x1="50" y1="42" x2="50" y2="50"/><line x1="60" y1="41" x2="60" y2="50"/></g>'),
+    usbc: S('<path d="M30 50 C60 10 100 90 130 50" fill="none" stroke="var(--o-rubber)" stroke-width="6" stroke-linecap="round"/>' +
+      '<rect x="6" y="40" width="28" height="20" rx="3" fill="var(--o-metal)" ' + K + '/><rect x="10" y="46" width="20" height="5" fill="var(--o-white)"/>' +
+      '<rect x="128" y="42" width="18" height="16" rx="4" fill="var(--o-rubber)"/><rect x="144" y="45" width="12" height="10" rx="5" fill="var(--o-metal)" ' + K + '/>' +
+      '<text x="20" y="80" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="var(--o-ink)">PC</text>' +
+      '<text x="148" y="80" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="var(--o-ink)">USB-C</text>'),
+    tape: S('<circle cx="52" cy="50" r="30" fill="var(--o-white)" ' + K + '/><circle cx="52" cy="50" r="14" fill="var(--paper)" ' + K + '/>' +
+      '<path d="M96 22 L150 22 L150 30 L104 30 L104 78 L96 78 Z" fill="var(--o-white)" ' + K + '/>' +
+      '<g fill="var(--o-metal-d)"><rect x="106" y="34" width="4" height="3"/><rect x="106" y="42" width="4" height="3"/><rect x="106" y="50" width="4" height="3"/><rect x="106" y="58" width="4" height="3"/></g>'),
+    tools: S('<rect x="12" y="26" width="58" height="14" rx="7" fill="var(--o-wire-red)" ' + K + '/><rect x="70" y="30" width="44" height="6" fill="var(--o-metal)" ' + K + '/><path d="M114 30 L124 33 L114 36 Z" fill="var(--o-metal-d)"/>' +
+      '<path d="M34 86 L70 60 L76 66 L40 92 Z" fill="var(--o-orange)" ' + K + '/><path d="M58 92 L76 66 L82 60 L64 96 Z" fill="var(--o-orange)" ' + K + '/>' +
+      '<path d="M78 62 L120 54 L118 60 L84 66 Z" fill="var(--o-metal)" ' + K + '/><path d="M80 66 L122 64 L120 70 L82 70 Z" fill="var(--o-metal)" ' + K + '/>'),
+    iron: S('<rect x="10" y="40" width="64" height="20" rx="9" fill="var(--o-yellow)" ' + K + '/>' +
+      '<rect x="74" y="45" width="46" height="10" fill="var(--o-metal)" ' + K + '/><path d="M120 46 L148 50 L120 54 Z" fill="var(--o-metal-d)" ' + K + '/>' +
+      '<path d="M10 50 C0 50 0 80 16 88" fill="none" stroke="var(--o-rubber)" stroke-width="4"/>' +
+      '<g fill="none" stroke="var(--o-pcb-red)" stroke-width="2.5" stroke-linecap="round"><path d="M134 36 q-4 -6 0 -12"/><path d="M144 38 q-4 -6 0 -12"/><path d="M154 40 q-4 -6 0 -12"/></g>' +
+      '<text x="130" y="78" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="var(--o-pcb-red)">440 °C</text>'),
+    solder: S('<rect x="56" y="24" width="40" height="62" rx="6" fill="var(--o-metal)" ' + K + '/>' +
+      '<rect x="56" y="16" width="40" height="12" rx="4" fill="var(--o-blue)" ' + K + '/>' +
+      '<path d="M76 16 C76 4 112 2 124 16 C132 26 128 40 140 44" fill="none" stroke="var(--o-metal-d)" stroke-width="3"/>' +
+      '<text x="76" y="62" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="var(--o-ink)">0,8 mm</text>'),
+    multimeter: S('<rect x="40" y="8" width="62" height="86" rx="8" fill="var(--o-yellow)" ' + K + '/>' +
+      '<rect x="48" y="16" width="46" height="20" rx="2" fill="#c9d4c4" ' + K + '/>' +
+      '<text x="90" y="31" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="var(--o-ink)">7.24</text>' +
+      '<circle cx="71" cy="58" r="14" fill="var(--o-pcb-black)"/><line x1="71" y1="58" x2="71" y2="46" stroke="var(--o-white)" stroke-width="3"/>' +
+      '<g fill="var(--o-pcb-black)"><circle cx="54" cy="84" r="4"/><circle cx="71" cy="84" r="4"/><circle cx="88" cy="84" r="4"/></g>' +
+      '<path d="M88 84 C120 84 130 60 150 40" fill="none" stroke="var(--o-wire-red)" stroke-width="3"/><path d="M71 84 C100 98 128 90 150 70" fill="none" stroke="var(--o-wire-black)" stroke-width="3"/>'),
+    stand: S('<path d="M30 84 L130 84 L120 74 L40 74 Z" fill="var(--o-metal-d)" ' + K + '/>' +
+      '<path d="M70 74 L110 24 L118 30 L82 74 Z" fill="none" ' + K + '/>' +
+      '<path d="M104 26 q6 -10 18 -6 q6 10 -4 16" fill="none" ' + K + '/>' +
+      '<rect x="38" y="66" width="28" height="8" rx="2" fill="var(--o-yellow)" ' + K + '/>' +
+      '<line x1="20" y1="20" x2="140" y2="92" stroke="var(--o-pcb-red)" stroke-width="3" opacity=".75"/>'),
+  };
+
+  // ---- parts ----
+  const GROUPS = [
+    { id: 'all', name: 'Toate' },
+    { id: 'brain', name: 'Creier, ochi și mușchi' },
+    { id: 'body', name: 'Corpul robotului' },
+    { id: 'power', name: 'Energie și protecție' },
+    { id: 'link', name: 'Legături' },
+    { id: 'tools', name: 'Unelte' },
+  ];
+  const STATUS = {
+    'in-poza': 'în poza ta',
+    'confirmat': 'confirmat de tine',
+    'pe-drum': 'pe drum',
+    'lipsa': 'lipsește',
+    'extra': 'în plus',
+  };
+  const PARTS = [
+    { id: 'esp32', g: 'brain', art: 'esp32', st: 'pe-drum', name: 'Creierul', pack: 'Plusivo Wireless ESP32 · 38 pini · USB-C',
+      what: 'Un calculator mic cât o gumă de mestecat. Citește ce vede senzorul, decide încotro mergem și comandă motoarele. Are WiFi, ca să vorbească cu „creierul mare” de pe PC.',
+      where: 'Comandat la Optimus Digital. Până vine, lucrăm la corpul robotului.' },
+    { id: 'hcsr04', g: 'brain', art: 'hcsr04', st: 'confirmat', name: 'Ochii de liliac', pack: 'HC-SR04 · senzor ultrasonic',
+      what: 'Trimite un sunet atât de subțire încât nu-l auzi și ascultă ecoul. Din cât durează ecoul, robotul știe la câți centimetri e peretele.',
+      where: 'Placă albastră cu doi „ochi” rotunzi argintii. Probabil în punga cu eticheta albă.' },
+    { id: 'l298n', g: 'brain', art: 'l298n', st: 'in-poza', name: 'Mușchii (driverul de motoare)', pack: 'L298N',
+      what: 'Creierul e prea slab ca să învârtă singur motoarele. L298N ia curent din baterii și îl dă motoarelor exact cum îi spune creierul: înainte, înapoi, mai tare, mai încet.',
+      where: 'Placa roșie cu „pieptene” negru (radiatorul), din punga neagră din mijloc.',
+      tip: 'Plăcile din pungi negre le ții de margini și nu le pui pe covor sau pe haine de lână.' },
+    { id: 'chassis', g: 'body', art: 'chassis', st: 'confirmat', name: 'Șasiul', pack: 'Kit Robot 2WD · placă acrilică',
+      what: 'Scheletul robotului: o placă transparentă cu găuri, pe care prindem tot restul.',
+      where: 'În kitul de la Optimus. Poate avea o folie de hârtie pe ea; o lași deocamdată.' },
+    { id: 'motors', g: 'body', art: 'motor', st: 'confirmat', name: 'Motoarele', pack: '2 × motor TT cu reductor 1:48',
+      what: 'Două motoare galbene. Fiecare învârte o roată. Reductorul (cutia galbenă) le face mai încete și mai puternice.',
+      where: 'În kit. Au două plăcuțe mici de metal unde vom lipi firele.' },
+    { id: 'wheels', g: 'body', art: 'wheel', st: 'confirmat', name: 'Roțile', pack: '2 × roată 65 mm',
+      what: 'Se înfig direct pe axul motorului. Cauciucul le ajută să nu alunece pe gresie.',
+      where: 'În kit.' },
+    { id: 'caster', g: 'body', art: 'caster', st: 'confirmat', name: 'Roata liberă', pack: 'roată cu bilă / roată pivotantă',
+      what: 'A treia „roată”, în spate. Nu are motor; doar ține robotul drept ca să nu se târască pe burtă.',
+      where: 'În kit, cu câteva șuruburi și distanțiere.' },
+    { id: 'switch', g: 'body', art: 'switch', st: 'confirmat', name: 'Întrerupătorul', pack: 'întrerupător basculant',
+      what: 'Butonul de pornit/oprit. Când e pe O, bateriile sunt deconectate de tot robotul. E și oprirea de urgență.',
+      where: 'În kit. Are două picioare de metal la care vom lipi fire.' },
+    { id: 'sonarmount', g: 'body', art: 'sonarMount', st: 'confirmat', name: 'Suportul ochilor', pack: 'suport printat 3D pentru HC-SR04',
+      what: 'Ține senzorul drept, cu „ochii” înainte, la marginea din față a șasiului.',
+      where: 'Piesă de plastic printată, de la ArduShop.' },
+    { id: 'batteries', g: 'power', art: 'batteries', st: 'in-poza', name: 'Bateriile reîncărcabile', pack: 'VARTA AA NiMH · 8 bucăți',
+      what: 'Rezervorul de energie. În robot intră 6; 2 rămân de schimb. Se încarcă de multe ori, nu se aruncă.',
+      where: 'Pachetele verzi și albastre, sus în dreapta.' },
+    { id: 'charger', g: 'power', art: 'charger', st: 'confirmat', name: 'Încărcătorul', pack: 'încărcător AA NiMH',
+      what: 'Reumple bateriile. Doar bateriile reîncărcabile intră în el, niciodată cele obișnuite (alcaline).',
+      where: 'Probabil cutia albă de sub baterii.' },
+    { id: 'holder6', g: 'power', art: 'holder6', st: 'confirmat', name: 'Cutia de baterii', pack: 'suport 6 × AA cu fir și mufă',
+      what: 'Ține cele 6 baterii una după alta, ca să facă împreună în jur de 7,2 V. Firul roșu e plusul, cel negru minusul.',
+      where: 'De la ArduShop. În kit e și o cutie de 4 baterii: pe aceea nu o folosim.' },
+    { id: 'fuses', g: 'power', art: 'fuses', st: 'in-poza', name: 'Siguranțele', pack: 'siguranțe de sticlă 5 × 20 mm · 0,2–15 A',
+      what: 'Paznicul robotului. Dacă ceva se scurtcircuitează, firul subțire din ea se topește primul și oprește curentul, înainte să se încingă altceva. Folosim una de 3 A.',
+      where: 'Cutiuța transparentă cu căsuțe (0,2 A … 15 A).' },
+    { id: 'fuseholder', g: 'power', art: 'fuseHolder', st: 'in-poza', name: 'Casa siguranței', pack: 'portsiguranță pe fir',
+      what: 'Un tub negru pe fir roșu, care se deșurubează la mijloc. Înăuntru pui siguranța de 3 A. Stă pe firul de plus de la baterii.',
+      where: 'Firele roșii cu tuburi negre, jos în stânga. Ai câteva; ne trebuie una.' },
+    { id: 'terminal', g: 'power', art: 'terminal', st: 'in-poza', name: 'Clema cu șuruburi', pack: 'regletă (clemă șir)',
+      what: 'Legi două fire fără să lipești: bagi capetele în căsuță și strângi șurubul. Tăiem din ea o bucată de 3–4 căsuțe.',
+      where: 'Barele albe de plastic, jos în mijloc.' },
+    { id: 'capacitor', g: 'power', art: 'capacitor', st: 'in-poza', name: 'Rezervorul mic', pack: 'condensator electrolitic 1000 µF / 16 V',
+      what: 'O baterie minusculă care se umple și se golește foarte repede. Când pornesc motoarele brusc, ajută ca creierul să nu se reseteze.',
+      where: 'Cilindrul negru din punguța mică de lângă letcon.',
+      warn: 'Are plus și minus. Dunga cu semnul − și piciorul mai scurt sunt minusul. Montat invers se poate umfla sau sparge.' },
+    { id: 'redblack', g: 'link', art: 'redBlack', st: 'in-poza', name: 'Firele de curent', pack: 'fir litat 22 AWG roșu + negru',
+      what: 'Fire moi, pentru curentul mare: de la baterii la siguranță, la întrerupător, la mușchi și la motoare.',
+      where: 'Ghemul roșu-negru de lângă placa cu găurele.' },
+    { id: 'breadboard', g: 'link', art: 'breadboard', st: 'in-poza', name: 'Placa cu găurele', pack: 'breadboard MB-102 · 830 de puncte',
+      what: 'Înfigi piesele și firele în găurele, fără lipit. Găurelele de pe același rând mic sunt legate între ele pe dedesubt.',
+      where: 'Cutia albă cu portocaliu, sus în dreapta.' },
+    { id: 'dupont', g: 'link', art: 'dupont', st: 'in-poza', name: 'Firele cu mufe', pack: 'fire Dupont mamă-tată și tată-tată',
+      what: 'Fire colorate pentru semnale (curent mic). „Tată” are un ac la capăt, „mamă” are o găurică. Culorile ne ajută să nu le încurcăm.',
+      where: 'Mănunchiul curcubeu din mijloc, jos.' },
+    { id: 'resistors', g: 'link', art: 'resistor', st: 'in-poza', name: 'Frânele de curent', pack: 'rezistoare 1/4 W',
+      what: 'Lasă să treacă doar o parte din curent. Cu două rezistoare facem un „împărțitor”, ca semnalul de 5 V al ochilor să ajungă la creier ca 3 V. Benzile colorate spun valoarea.',
+      where: 'Punga mare cu benzile galbene de hârtie. Avem nevoie de 2,2 k, 3,3 k, 4,7 k și 10 k.' },
+    { id: 'usbc', g: 'link', art: 'usbc', st: 'confirmat', name: 'Cablul de date', pack: 'cablu USB-A → USB-C de date',
+      what: 'Leagă creierul de PC: prin el punem programul pe robot și citim mesajele lui. Nu încarcă nimic.',
+      where: 'De acasă. Testul: cu el, PC-ul trebuie să „vadă” telefonul.' },
+    { id: 'heatshrink', g: 'link', art: 'heatShrink', st: 'extra', name: 'Haina firelor', pack: 'tub termocontractabil',
+      what: 'Tuburi care se strâng la căldură. Le tragi peste o lipitură și o îmbracă, ca să nu atingă nimic. Nu erau în listă, dar ne prind foarte bine la motoare.',
+      where: 'Cele două pungi cu tuburi colorate.' },
+    { id: 'iron', g: 'tools', art: 'iron', st: 'in-poza', name: 'Letconul', pack: 'TOLSEN 38063 · 60 W',
+      what: 'Un „creion” cu vârful foarte fierbinte, care topește fludorul ca să lipim firele.',
+      where: 'Ambalajul galben, sus în stânga.',
+      warn: 'Vârful ajunge pe la 440 °C și rămâne fierbinte și după ce îl scoți din priză. Nu-l pornim până nu avem suportul de letcon.' },
+    { id: 'stand', g: 'tools', art: 'stand', st: 'lipsa', name: 'Suportul de letcon', pack: 'suport cu spirală + burete',
+      what: 'Locul unde stă letconul fierbinte între două lipituri, ca să nu stea pe masă. Buretele umed curăță vârful.',
+      where: 'Nu e în poză și nu era în listă. Îl luăm înainte de primul lipit.',
+      warn: 'Fără suport nu pornim letconul.' },
+    { id: 'solder', g: 'tools', art: 'solder', st: 'in-poza', name: 'Fludorul', pack: 'sârmă de lipit 0,8 mm cu flux',
+      what: 'Sârma moale care se topește sub letcon și devine lipitura. Fluxul din ea o ajută să curgă frumos.',
+      where: 'Tubul argintiu cu capac albastru, în dreapta.',
+      tip: 'După ce lucrezi cu fludor, speli mâinile. Nu mănânci în timp ce lipești.' },
+    { id: 'multimeter', g: 'tools', art: 'multimeter', st: 'in-poza', name: 'Stetoscopul (multimetrul)', pack: 'DT-182',
+      what: 'Măsoară câți volți are o baterie și verifică dacă un fir e întreg: dacă e, face „bip”. Îl folosim înainte de fiecare prima pornire.',
+      where: 'Ambalajul albastru, jos în dreapta.' },
+    { id: 'tools', g: 'tools', art: 'tools', st: 'confirmat', name: 'Șurubelnița și cleștele', pack: 'șurubelniță cruce PH1 + clește de dezizolat',
+      what: 'Șurubelnița strânge șuruburile kitului. Cleștele dezizolează: scoate plasticul de pe capătul firului, ca să ajungi la sârma din interior.',
+      where: 'De acasă.' },
+    { id: 'tape', g: 'tools', art: 'tape', st: 'confirmat', name: 'Banda și colierele', pack: 'bandă dublu-adezivă + coliere + bandă izolatoare',
+      what: 'Banda dublu-adezivă lipește cutia de baterii și plăcile de șasiu. Colierele strâng firele să nu atârne pe lângă roți.',
+      where: 'De acasă.' },
+    { id: 'croc', g: 'tools', art: 'croc', st: 'extra', name: 'Cleștii crocodil', pack: 'clești mari roșu / negru',
+      what: 'Clești pentru prins fire în timpul testelor. Nu erau în listă. La robotul 01 nu-i folosim.',
+      where: 'Cleștii arămii cu mâner roșu și negru, în mijloc.',
+      warn: 'Nu-i pui pe baterii ca să „vezi dacă merge”: dacă se ating între ei, e scurtcircuit.' },
+  ];
+
+  // ---- missions ----
+  const MISSIONS = [
+    { id: 'm0', n: '0', title: 'Cunoaște piesele', time: '20 min', state: 'now', stateText: 'acum',
+      need: ['toate piesele', 'o masă liberă', 'telefonul pentru poză'],
+      steps: [
+        'Fă pe masă cinci grămezi, ca filtrele de mai sus: creier și simțuri, corpul robotului, energie, legături, unelte.',
+        'Ia piesele pe rând. Găsește cardul fiecăreia, citește „ce face” și bifează „Am găsit-o”.',
+        'Plăcile electronice le poți scoate din punga neagră ca să le vezi. Le ții de margini și le pui la loc în pungă.',
+        'Desfă kitul robotului (cutia de la Optimus) și așază toate piesele lui una lângă alta, fără să le asamblezi.',
+        'Numără șuruburile și piulițele din kit și scrie-mi câte sunt.',
+      ],
+      see: 'Toate cardurile bifate, mai puțin creierul, care e pe drum, și suportul de letcon, care lipsește.',
+      stop: 'O piesă e ruptă, crăpată sau lipsește. Nu o înlocui cu altceva; spune-mi.',
+      photo: 'Kitul robotului despachetat, de sus, cu toate piesele lui una lângă alta.' },
+    { id: 'm1', n: '1', title: 'Masa de lucru și siguranța', time: '15 min', state: 'wait', stateText: 'după ce ai suportul de letcon',
+      need: ['suportul de letcon', 'un carton gros sau o placă de lemn', 'buretele suportului', 'o fereastră'],
+      steps: [
+        'Pune cartonul gros sau placa de lemn pe masă. Pe el lucrăm, ca să nu ardem masa.',
+        'Așază suportul de letcon în partea mâinii cu care scrii, spre marginea din spate a mesei.',
+        'Udă buretele cu puțină apă și stoarce-l: trebuie să fie umed, nu să curgă din el.',
+        'Pune letconul în suport, fără să-l bagi în priză. Firul lui să nu treacă prin fața ta și să nu atârne de masă.',
+        'Deschide fereastra: fumul de la fludor nu se respiră.',
+        'Învață regula de aur: letconul stă doar în mâna ta sau în suport. Niciodată pe masă.',
+        'Și a doua regulă: vârful de metal nu se atinge niciodată, nici după ce l-ai scos din priză. Rămâne fierbinte cam 10 minute.',
+      ],
+      see: 'Masa cu carton, suportul cu letconul în el (fără priză), buretele umed, fereastra deschisă.',
+      stop: 'Firul letconului e tăiat, ars sau are sârma la vedere. Atunci nu-l folosim deloc.',
+      photo: 'Masa pregătită, cu letconul în suport.' },
+  ];
+  const ROAD = [
+    { n: '2', t: 'Primul lipit, pe un fir de probă', d: 'Lipești două fire între ele până iese o lipitură lucioasă. Încă nu atingem motoarele.' },
+    { n: '3', t: 'Firele la motoare', d: 'Un fir roșu și unul negru la fiecare motor, apoi „haina” de tub termocontractabil.' },
+    { n: '4', t: 'Motoarele și roțile pe șasiu', d: 'Robotul primește „picioare” și se poate împinge cu mâna.' },
+    { n: '5', t: 'Roata liberă, cutia de baterii și întrerupătorul', d: 'Robotul stă singur pe masă. Bateriile nu se pun încă.' },
+    { n: '6', t: 'Fiecare placă la locul ei', d: 'Mușchii, placa cu găurele și ochii se lipesc pe șasiu cu bandă. Fără fire electrice.' },
+    { n: '7', t: 'Prima viață a creierului', d: 'Când vine ESP32: îl legăm la PC și facem un LED să clipească. Fără baterii, fără motoare.' },
+    { n: '8', t: 'Cablarea, fir cu fir', d: 'Fiecare fir cu culoarea și locul lui, verificat la multimetru înainte de prima alimentare.' },
+  ];
+
+  // ---- state + persistence ----
+  const LS_KEY = 'cartea-robotului-01';
+  let state = { checked: {} };
+  try { const raw = localStorage.getItem(LS_KEY); if (raw) state = Object.assign(state, JSON.parse(raw)); } catch (e) { /* storage blocked: start empty */ }
+  let dbRef = null;
+  let saveTimer = null;
+  let filter = 'all';
+  const syncEl = document.getElementById('sync');
+
+  function persist() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+    if (!dbRef) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async () => {
+      try {
+        await dbRef.set({ checked: state.checked, updatedAt: new Date().toISOString() });
+        syncEl.textContent = 'Bifele se salvează pentru toate dispozitivele tale.';
+      } catch (e) {
+        syncEl.textContent = 'Nu am putut salva online; bifele rămân în acest browser.';
+      }
+    }, 700);
+  }
+
+  function toggle(id, on) {
+    state.checked = Object.assign({}, state.checked, { [id]: on });
+    if (!on) delete state.checked[id];
+    persist();
+    renderCounts();
+  }
+
+  // ---- render ----
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  function renderChips() {
+    const box = document.getElementById('chips');
+    box.innerHTML = GROUPS.map((g) => {
+      const n = g.id === 'all' ? PARTS.length : PARTS.filter((p) => p.g === g.id).length;
+      return '<button type="button" class="chip" id="chip-' + g.id + '" data-g="' + g.id + '" aria-pressed="' + (filter === g.id) + '">' + esc(g.name) + ' · ' + n + '</button>';
+    }).join('');
+    box.querySelectorAll('.chip').forEach((b) => b.addEventListener('click', () => { filter = b.dataset.g; renderChips(); renderParts(); }));
+  }
+
+  function renderParts() {
+    const list = PARTS.filter((p) => filter === 'all' || p.g === filter);
+    const box = document.getElementById('parts');
+    box.innerHTML = list.map((p) => {
+      const on = !!state.checked['p-' + p.id];
+      return '<article class="part' + (on ? ' done' : '') + '" id="part-' + p.id + '">' +
+        '<div class="art">' + ART[p.art] + '<span class="pill ' + p.st + '">' + STATUS[p.st] + '</span></div>' +
+        '<div class="body"><h3 class="name">' + esc(p.name) + '</h3><p class="pack">' + esc(p.pack) + '</p>' +
+        '<p class="what">' + esc(p.what) + '</p><p class="where"><b>Unde o găsești:</b> ' + esc(p.where) + '</p>' +
+        (p.warn ? '<p class="warn"><b>Atenție:</b> ' + esc(p.warn) + '</p>' : '') +
+        (p.tip ? '<p class="tip"><b>Sfat:</b> ' + esc(p.tip) + '</p>' : '') + '</div>' +
+        '<label class="check"><input type="checkbox" id="cb-p-' + p.id + '" data-id="p-' + p.id + '"' + (on ? ' checked' : '') + '> Am găsit-o</label>' +
+        '</article>';
+    }).join('');
+    box.querySelectorAll('input[type=checkbox]').forEach((cb) => cb.addEventListener('change', () => {
+      toggle(cb.dataset.id, cb.checked);
+      cb.closest('.part').classList.toggle('done', cb.checked);
+    }));
+  }
+
+  function renderMissions() {
+    const box = document.getElementById('missions');
+    box.innerHTML = MISSIONS.map((m) => {
+      const steps = m.steps.map((s, i) => {
+        const id = m.id + '-' + (i + 1);
+        const on = !!state.checked[id];
+        return '<li><label class="tick' + (on ? ' done' : '') + '"><input type="checkbox" id="cb-' + id + '" data-id="' + id + '"' + (on ? ' checked' : '') + '><span>' + esc(s) + '</span></label></li>';
+      }).join('');
+      return '<article class="mission" id="' + m.id + '">' +
+        '<div class="m-head"><span class="m-num">' + m.n + '</span><div class="m-title"><h3>' + esc(m.title) + '</h3><span class="m-time">⏱ ' + m.time + '</span></div>' +
+        '<span class="m-state ' + m.state + '" data-m="' + m.id + '">' + esc(m.stateText) + '</span></div>' +
+        '<div class="m-body"><div><p class="eyebrow">Ai nevoie de</p><div class="need">' + m.need.map((x) => '<span>' + esc(x) + '</span>').join('') + '</div></div>' +
+        '<ol class="steps">' + steps + '</ol>' +
+        '<div class="boxes"><div class="box see"><b>Ce trebuie să vezi</b>' + esc(m.see) + '</div>' +
+        '<div class="box stop"><b>Oprește-te dacă</b>' + esc(m.stop) + '</div>' +
+        '<div class="box photo"><b>Poza pentru chat</b>' + esc(m.photo) + '</div></div></div></article>';
+    }).join('');
+    box.querySelectorAll('input[type=checkbox]').forEach((cb) => cb.addEventListener('change', () => {
+      toggle(cb.dataset.id, cb.checked);
+      cb.closest('.tick').classList.toggle('done', cb.checked);
+      renderMissionStates();
+    }));
+    renderMissionStates();
+
+    document.getElementById('road').innerHTML = ROAD.map((r) =>
+      '<li><span class="n">' + r.n + '</span><span class="t"><b>' + esc(r.t) + '</b><span>' + esc(r.d) + '</span></span><span class="later">în curând</span></li>').join('');
+  }
+
+  function renderMissionStates() {
+    MISSIONS.forEach((m) => {
+      const done = m.steps.every((_, i) => state.checked[m.id + '-' + (i + 1)]);
+      const el = document.querySelector('.m-state[data-m="' + m.id + '"]');
+      if (!el) return;
+      el.className = 'm-state ' + (done ? 'ok' : m.state);
+      el.textContent = done ? 'făcută · trimite poza' : m.stateText;
+    });
+  }
+
+  function renderCounts() {
+    const pTotal = PARTS.length;
+    const pDone = PARTS.filter((p) => state.checked['p-' + p.id]).length;
+    const sTotal = MISSIONS.reduce((a, m) => a + m.steps.length, 0);
+    const sDone = MISSIONS.reduce((a, m) => a + m.steps.filter((_, i) => state.checked[m.id + '-' + (i + 1)]).length, 0);
+    document.getElementById('pcount').textContent = pDone + ' / ' + pTotal;
+    document.getElementById('scount').textContent = sDone + ' / ' + sTotal;
+    document.getElementById('pbar').style.width = (pTotal ? (100 * pDone / pTotal) : 0) + '%';
+    document.getElementById('sbar').style.width = (sTotal ? (100 * sDone / sTotal) : 0) + '%';
+  }
+
+  // ---- resistor colour guide (5-band metal film; 4-band shown as text) ----
+  const BAND = {
+    negru: 'var(--o-wire-black)', maro: 'var(--o-brown)', roșu: 'var(--o-wire-red)', portocaliu: 'var(--o-orange)',
+    galben: 'var(--o-yellow)', violet: 'var(--o-violet)',
+  };
+  const RES = [
+    { v: '2,2 kΩ', ohm: '2 200 Ω', bands: ['roșu', 'roșu', 'negru', 'maro', 'maro'], four: 'roșu · roșu · roșu · auriu',
+      use: 'Divizorul ochilor, partea de sus', why: 'Împreună cu 3,3 kΩ coboară ecoul de 5 V la 3 V.' },
+    { v: '3,3 kΩ', ohm: '3 300 Ω', bands: ['portocaliu', 'portocaliu', 'negru', 'maro', 'maro'], four: 'portocaliu · portocaliu · roșu · auriu',
+      use: 'Divizorul ochilor, partea de jos', why: 'Merge spre minus (GND).' },
+    { v: '10 kΩ', ohm: '10 000 Ω', bands: ['maro', 'negru', 'negru', 'roșu', 'maro'], four: 'maro · negru · portocaliu · auriu',
+      use: 'Divizorul bateriei, partea de sus', why: 'Cu 4,7 kΩ, creierul poate „citi” cât de plină e bateria.' },
+    { v: '4,7 kΩ', ohm: '4 700 Ω', bands: ['galben', 'violet', 'negru', 'maro', 'maro'], four: 'galben · violet · roșu · auriu',
+      use: 'Divizorul bateriei, partea de jos', why: '8,4 V de la baterii pline ajung la creier ca 2,7 V.' },
+  ];
+  function resSvg(bands) {
+    const xs = [70, 86, 102, 118, 142];
+    return '<svg viewBox="0 0 200 50" aria-hidden="true"><line x1="4" y1="25" x2="196" y2="25" stroke="var(--o-metal-d)" stroke-width="3"/>' +
+      '<rect x="56" y="10" width="100" height="30" rx="13" fill="var(--o-res-blue)" stroke="var(--o-ink)" stroke-width="1.5"/>' +
+      bands.map((b, i) => '<rect x="' + xs[i] + '" y="10" width="8" height="30" fill="' + BAND[b] + '"/>').join('') + '</svg>';
+  }
+  document.getElementById('res').innerHTML = RES.map((r) =>
+    '<div class="res-row"><div class="draw">' + resSvg(r.bands) + '</div>' +
+    '<div class="val">' + r.v + '<small>' + r.ohm + '</small></div>' +
+    '<div class="use"><b>' + esc(r.use) + '</b> ' + esc(r.why) +
+    '<span>5 benzi: ' + r.bands.join(' · ') + ' · 4 benzi (dacă ai bej): ' + r.four + '</span></div></div>').join('');
+
+  // ---- map legend: jump to a part card, clearing the filter first ----
+  document.querySelectorAll('#legend a').forEach((a) => a.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    if (filter !== 'all') { filter = 'all'; renderChips(); renderParts(); }
+    const el = document.getElementById('part-' + a.dataset.part);
+    if (el) {
+      el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+      el.style.outline = '3px solid var(--accent)';
+      setTimeout(() => { el.style.outline = ''; }, 1600);
+    }
+  }));
+
+  function renderAll() { renderChips(); renderParts(); renderMissions(); renderCounts(); }
+  renderAll();
+
+  // ---- shared progress (db), when the viewer can run it ----
+  (async () => {
+    if (!window.claude || typeof window.claude.use !== 'function') return;
+    let db = null;
+    try { db = await window.claude.use('db'); } catch (e) { db = null; }
+    if (!db) return;
+    try {
+      dbRef = db.doc('progres/robot01');
+      syncEl.textContent = 'Se încarcă bifele salvate…';
+      let first = true;
+      dbRef.onSnapshot((snap) => {
+        if (snap.exists) {
+          const data = snap.data() || {};
+          const remote = (data.checked && typeof data.checked === 'object') ? data.checked : {};
+          if (first && !Object.keys(remote).length && Object.keys(state.checked).length) {
+            persist(); // first visit online: push this browser's ticks up
+          } else {
+            state.checked = Object.assign({}, remote);
+            try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+            renderParts(); renderMissions(); renderCounts();
+          }
+        } else if (first && Object.keys(state.checked).length) {
+          persist();
+        }
+        first = false;
+        syncEl.textContent = 'Bifele se salvează pentru toate dispozitivele tale.';
+      }, () => {
+        dbRef = null;
+        syncEl.textContent = 'Bifele se salvează doar în acest browser.';
+      });
+    } catch (e) {
+      dbRef = null;
+      syncEl.textContent = 'Bifele se salvează doar în acest browser.';
+    }
+  })();
+})();
+</script>
+</body>
+</html>
