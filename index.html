@@ -201,6 +201,35 @@ details.mission[open] > summary::after { transform: rotate(180deg); }
 .subhead { font-family: var(--f-display); font-weight: 800; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
 footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
 
+/* virtual workshop */
+.ws { display: grid; gap: 12px; }
+.ws-goal { font-size: 15px; background: var(--info-soft); border-radius: 10px; padding: 10px 14px; }
+.ws-tools { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; font-size: 14px; color: var(--muted); }
+.ws .stage { background: var(--paper); border-radius: 14px; }
+.ws .stage svg { display: block; width: 100%; min-width: 720px; height: auto; touch-action: manipulation; }
+.ws-term { cursor: pointer; }
+.ws-term:hover .dot, .ws-term:focus .dot { fill: #f0a500; }
+.ws-term.sel .dot { fill: #f0a500; stroke-width: 3; }
+.ws-term:focus { outline: none; }
+.ws-hit { cursor: pointer; }
+.ws-hit:focus { outline: none; stroke: rgba(240, 165, 0, .5); }
+.ws-wire.live { stroke-dasharray: 10 6; animation: flow 0.9s linear infinite; }
+.ws-spin { transform-box: fill-box; transform-origin: center; }
+.ws-spin.on { animation: spin 0.8s linear infinite; }
+#ws-svg.still .ws-wire.live, #ws-svg.still .ws-spin.on { animation: none; }
+.ws-out { font-size: 15px; border-radius: 10px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); min-height: 2.6em; }
+.ws-out ul { margin: 6px 0 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.ws-out.ok { background: var(--ok-soft); border-color: transparent; }
+.ws-out.bad { background: var(--stop-soft); border-color: transparent; }
+.ws-out li.w { color: var(--accent-ink); }
+.ws-more { font-size: 14px; color: var(--muted); }
+.ws-more ul { margin: 6px 0 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.ws-more a { color: var(--info); }
+.pbtn.sw-red[aria-pressed="true"] { background: #d33a2c; color: #ffffff; }
+.pbtn.sw-black[aria-pressed="true"] { background: #1e1e1e; color: #ffffff; }
+.pbtn.sw-orange[aria-pressed="true"] { background: #e8792b; color: #1b1600; }
+.pbtn.sw-yellow[aria-pressed="true"] { background: #f2c230; color: #1b1600; }
+
 /* table of contents */
 .toc { display: flex; flex-wrap: wrap; gap: 6px; }
 .toc a { font: 500 13px var(--f-body); color: var(--ink); text-decoration: none; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; }
@@ -225,6 +254,11 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
 
 /* demos */
 .demos { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.demo.wide { grid-column: 1 / -1; }
+.auto-read { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 14px; }
+.pill-state { font: 700 12px var(--f-mono); letter-spacing: .04em; text-transform: uppercase; padding: 5px 10px; border-radius: 6px; background: var(--ok-soft); color: var(--ok); }
+.pill-state[data-state="stop"], .pill-state[data-state="back"], .pill-state[data-state="turn"] { background: var(--accent-soft); color: var(--accent-ink); }
+.pill-state[data-state="stuck"], .pill-state[data-state="burst"], .pill-state[data-state="giveup"] { background: var(--stop-soft); color: var(--stop); }
 .demo { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
 .demo h3 { font-size: 20px; }
 .demo .stage { background: var(--paper); border-radius: 12px; overflow: hidden; }
@@ -280,6 +314,9 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
 .legend { display: grid; gap: 6px; list-style: none; padding: 0; margin: 0; counter-reset: none; }
 .legend a { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: center; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; }
 .legend a:hover { border-color: var(--accent); }
+.hits rect { fill: transparent; cursor: pointer; }
+.hits a:hover rect, .hits a:focus-visible rect { fill: #f0a500; fill-opacity: .22; stroke: #f0a500; stroke-width: 3; }
+.hits a:focus { outline: none; }
 .legend a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .legend .k { width: 26px; height: 26px; border-radius: 50%; background: var(--o-ink); color: #ffffff; font: 700 13px var(--f-mono); display: grid; place-items: center; }
 .legend small { display: block; color: var(--muted); font-size: 12px; }
@@ -381,7 +418,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
   <nav class="toc" aria-label="Cuprins">
     <a href="#h-loop">Cum lucrăm</a><a href="#h-rules">Reguli</a><a href="#h-words">Cuvinte noi</a><a href="#h-map">Harta robotului</a>
     <a href="#h-flow">Drumul energiei</a><a href="#h-demo">Cum virează și cum vede</a><a href="#h-parts">Piesele</a>
-    <a href="#h-res">Rezistențele</a><a href="#h-meter">Multimetrul</a><a href="#h-missions">Misiunile</a><a href="#h-faq">Când ceva nu merge</a>
+    <a href="#h-res">Rezistențele</a><a href="#h-meter">Multimetrul</a><a href="#h-ws">Atelierul virtual</a><a href="#h-missions">Misiunile</a><a href="#h-faq">Când ceva nu merge</a>
   </nav>
 
   <section aria-labelledby="h-loop">
@@ -454,7 +491,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       <p class="eyebrow">Robotul văzut de sus</p>
       <h2 id="h-map">Unde stă fiecare piesă</h2>
       <p class="lead">Robotul are două etaje, ca un raft. Ce e desenat plin stă pe <b>etajul de sus</b>; ce e cu linie punctată stă <b>între cele două plăci</b>,
-        pe placa de jos. Apasă pe un nume din listă ca să sari la cardul piesei.</p>
+        pe placa de jos. Apasă pe o piesă din desen sau pe un nume din listă ca să sari la cardul ei.</p>
     </div>
     <div class="map-grid">
       <figure class="figure" style="margin:0">
@@ -502,6 +539,24 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
               <g><circle cx="240" cy="146" r="12" fill="var(--o-ink)"/><text x="240" y="151" font-size="12" fill="#ffffff">9</text></g>
               <g><circle cx="420" cy="92" r="14" fill="var(--o-ink)"/><text x="420" y="97" font-size="12" fill="#ffffff">10</text></g>
             </g>
+                    <g class="hits">
+            <a href="#part-wheels" data-part="wheels"><title>Roată · vezi piesa</title><rect x="190" y="18" width="110" height="40" rx="8"/></a>
+            <a href="#part-wheels" data-part="wheels"><title>Roată · vezi piesa</title><rect x="440" y="18" width="110" height="40" rx="8"/></a>
+            <a href="#part-wheels" data-part="wheels"><title>Roată · vezi piesa</title><rect x="190" y="382" width="110" height="40" rx="8"/></a>
+            <a href="#part-wheels" data-part="wheels"><title>Roată · vezi piesa</title><rect x="440" y="382" width="110" height="40" rx="8"/></a>
+            <a href="#part-motors" data-part="motors"><title>Motor · vezi piesa</title><rect x="200" y="74" width="90" height="46" rx="8"/></a>
+            <a href="#part-motors" data-part="motors"><title>Motor · vezi piesa</title><rect x="450" y="74" width="90" height="46" rx="8"/></a>
+            <a href="#part-motors" data-part="motors"><title>Motor · vezi piesa</title><rect x="200" y="320" width="90" height="46" rx="8"/></a>
+            <a href="#part-motors" data-part="motors"><title>Motor · vezi piesa</title><rect x="450" y="320" width="90" height="46" rx="8"/></a>
+            <a href="#part-holder6" data-part="holder6"><title>Cutia de baterii · vezi piesa</title><rect x="172" y="168" width="136" height="104" rx="8"/></a>
+            <a href="#part-fuseholder" data-part="fuseholder"><title>Siguranța și clema · vezi piesa</title><rect x="172" y="134" width="136" height="24" rx="8"/></a>
+            <a href="#part-l298n" data-part="l298n"><title>Mușchi · vezi piesa</title><rect x="330" y="128" width="84" height="70" rx="8"/></a>
+            <a href="#part-l298n" data-part="l298n"><title>Mușchi · vezi piesa</title><rect x="330" y="242" width="84" height="70" rx="8"/></a>
+            <a href="#part-breadboard" data-part="breadboard"><title>Placa cu găurele · vezi piesa</title><rect x="430" y="160" width="130" height="120" rx="8"/></a>
+            <a href="#part-esp32" data-part="esp32"><title>Creierul · vezi piesa</title><rect x="446" y="188" width="98" height="64" rx="8"/></a>
+            <a href="#part-hcsr04" data-part="hcsr04"><title>Ochii · vezi piesa</title><rect x="572" y="168" width="56" height="104" rx="8"/></a>
+            <a href="#part-switch" data-part="switch"><title>Întrerupătorul · vezi piesa</title><rect x="166" y="296" width="44" height="30" rx="8"/></a>
+          </g>
           </svg>
         </div>
         <p class="cap">Desen de principiu: plin = etajul de sus, punctat = între plăci (pe placa de jos). Locul exact îl fixăm după poza kitului tău.</p>
@@ -530,7 +585,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
         Creierul doar dă comenzi.</p>
     </div>
     <figure class="figure" id="flow-fig" style="margin:0">
-      <div class="fig-tools"><button type="button" class="pbtn" id="btn-power" aria-pressed="false">Întrerupătorul: O (oprit) · apasă ca să pornești</button><span>Vezi pe unde curge curentul și cum pornesc motoarele.</span></div>
+      <div class="fig-tools"><button type="button" class="pbtn" id="btn-power" aria-pressed="false">Întrerupătorul: O (oprit) · apasă ca să pornești</button><span>Vezi pe unde curge curentul și cum pornesc motoarele. Apasă pe o piesă ca să citești despre ea.</span></div>
       <div class="scroll">
         <svg viewBox="0 0 900 390" role="img" aria-label="Schema drumului energiei: baterii, siguranță, întrerupător, doi mușchi, patru motoare, creier și ochi">
           <defs>
@@ -559,10 +614,10 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
             <text x="675" y="58" font-size="16" font-weight="600" fill="#ffffff">Mușchi dreapta</text><text x="675" y="80" font-size="12" fill="#ffffff">L298N #2</text>
             <rect x="600" y="150" width="150" height="90" rx="10" fill="var(--o-pcb-red)" stroke="var(--o-ink)" stroke-width="2"/>
             <text x="675" y="186" font-size="16" font-weight="600" fill="#ffffff">Mușchi stânga</text><text x="675" y="206" font-size="12" fill="#ffffff">L298N #1 · iese 5 V</text>
-            <rect x="780" y="12" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="826" y="37" font-size="13" font-weight="600">față-dreapta</text>
-            <rect x="780" y="62" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="826" y="87" font-size="13" font-weight="600">spate-dreapta</text>
-            <rect x="780" y="142" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="826" y="167" font-size="13" font-weight="600">față-stânga</text>
-            <rect x="780" y="192" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="826" y="217" font-size="13" font-weight="600">spate-stânga</text>
+            <rect x="780" y="12" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="846" y="37" font-size="11" font-weight="600">față-dreapta</text>
+            <rect x="780" y="62" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="846" y="87" font-size="11" font-weight="600">spate-dreapta</text>
+            <rect x="780" y="142" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="846" y="167" font-size="11" font-weight="600">față-stânga</text>
+            <rect x="780" y="192" width="110" height="40" rx="8" fill="var(--o-yellow)" stroke="var(--o-ink)" stroke-width="2"/><text x="846" y="217" font-size="11" font-weight="600">spate-stânga</text>
             <rect x="600" y="300" width="150" height="60" rx="10" fill="var(--o-pcb-black)" stroke="var(--o-ink)" stroke-width="2"/>
             <text x="675" y="326" font-size="16" font-weight="600" fill="#ffffff">Creierul</text><text x="675" y="346" font-size="12" fill="#ffffff">ESP32 · 3,3 V</text>
             <rect x="240" y="300" width="170" height="60" rx="10" fill="var(--o-pcb-blue)" stroke="var(--o-ink)" stroke-width="2"/>
@@ -583,10 +638,25 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
             <path class="flowline" d="M730 300 V250 M410 345 H590" stroke="#ffffff" stroke-width="2" stroke-dasharray="3 13"/>
           </g>
           <g fill="none" stroke="var(--o-ink)" stroke-width="2" aria-hidden="true">
-            <g class="spin"><circle cx="874" cy="32" r="8"/><path d="M866 32 H882 M874 24 V40"/></g>
-            <g class="spin"><circle cx="874" cy="82" r="8"/><path d="M866 82 H882 M874 74 V90"/></g>
-            <g class="spin"><circle cx="874" cy="162" r="8"/><path d="M866 162 H882 M874 154 V170"/></g>
-            <g class="spin"><circle cx="874" cy="212" r="8"/><path d="M866 212 H882 M874 204 V220"/></g>
+            <g class="spin"><circle cx="794" cy="32" r="7"/><path d="M787 32 H801 M794 25 V39"/></g>
+            <g class="spin"><circle cx="794" cy="82" r="7"/><path d="M787 82 H801 M794 75 V89"/></g>
+            <g class="spin"><circle cx="794" cy="162" r="7"/><path d="M787 162 H801 M794 155 V169"/></g>
+            <g class="spin"><circle cx="794" cy="212" r="7"/><path d="M787 212 H801 M794 205 V219"/></g>
+          </g>
+                  <g class="hits">
+            <a href="#part-batteries" data-part="batteries"><title>Baterii · vezi piesa</title><rect x="20" y="55" width="140" height="90" rx="8"/></a>
+            <a href="#part-fuses" data-part="fuses"><title>Siguranța · vezi piesa</title><rect x="190" y="75" width="100" height="50" rx="8"/></a>
+            <a href="#part-switch" data-part="switch"><title>Întrerupătorul · vezi piesa</title><rect x="320" y="75" width="120" height="50" rx="8"/></a>
+            <a href="#part-terminal" data-part="terminal"><title>Clema · vezi piesa</title><rect x="470" y="82" width="40" height="36" rx="8"/></a>
+            <a href="#part-capacitor" data-part="capacitor"><title>Condensatorul 1000 µF · vezi piesa</title><rect x="462" y="128" width="56" height="18" rx="8"/></a>
+            <a href="#part-l298n" data-part="l298n"><title>Mușchi dreapta · vezi piesa</title><rect x="600" y="20" width="150" height="90" rx="8"/></a>
+            <a href="#part-l298n" data-part="l298n"><title>Mușchi stânga · vezi piesa</title><rect x="600" y="150" width="150" height="90" rx="8"/></a>
+            <a href="#part-motors" data-part="motors"><title>Motor · vezi piesa</title><rect x="780" y="12" width="110" height="40" rx="8"/></a>
+            <a href="#part-motors" data-part="motors"><title>Motor · vezi piesa</title><rect x="780" y="62" width="110" height="40" rx="8"/></a>
+            <a href="#part-motors" data-part="motors"><title>Motor · vezi piesa</title><rect x="780" y="142" width="110" height="40" rx="8"/></a>
+            <a href="#part-motors" data-part="motors"><title>Motor · vezi piesa</title><rect x="780" y="192" width="110" height="40" rx="8"/></a>
+            <a href="#part-esp32" data-part="esp32"><title>Creierul · vezi piesa</title><rect x="600" y="300" width="150" height="60" rx="8"/></a>
+            <a href="#part-hcsr04" data-part="hcsr04"><title>Ochii · vezi piesa</title><rect x="240" y="300" width="170" height="60" rx="8"/></a>
           </g>
         </svg>
       </div>
@@ -611,36 +681,75 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       <p class="lead">Două jucării care arată exact ce va face programul robotului. Apasă butoanele.</p>
     </div>
     <div class="demos">
-      <div class="demo">
-        <h3>Virarea ca tancul</h3>
-        <p class="lead">Robotul nu întoarce roțile. Doar le învârte cu viteze diferite pe stânga și pe dreapta.</p>
+      <div class="demo wide">
+        <h3>Cum conduce robotul: manual, autonom și Burn out</h3>
+        <p class="lead">Alege un regim. În <b>Manual</b> îl conduci tu. În regimurile autonome robotul se descurcă singur:
+          ochii măsoară distanța până la obstacole, iar creierul decide.</p>
+        <div class="btns" role="group" aria-label="Regimul de condus">
+          <button type="button" class="pbtn" data-drive="manual" aria-pressed="true">Manual</button>
+          <button type="button" class="pbtn" data-drive="avoid" aria-pressed="false">Autonom: ocolește obstacolele</button>
+          <button type="button" class="pbtn" data-drive="unstuck" aria-pressed="false">Autonom + Burn out</button>
+        </div>
         <div class="stage">
-          <svg viewBox="0 0 360 260" role="img" aria-label="Robotul văzut de sus, care se mișcă după butonul apăsat">
-            <rect width="360" height="260" fill="var(--paper)"/>
-            <g stroke="#cfd7d3" stroke-width="1"><line x1="40" y1="0" x2="40" y2="260"/><line x1="80" y1="0" x2="80" y2="260"/><line x1="120" y1="0" x2="120" y2="260"/><line x1="160" y1="0" x2="160" y2="260"/><line x1="200" y1="0" x2="200" y2="260"/><line x1="240" y1="0" x2="240" y2="260"/><line x1="280" y1="0" x2="280" y2="260"/><line x1="320" y1="0" x2="320" y2="260"/><line x1="0" y1="40" x2="360" y2="40"/><line x1="0" y1="80" x2="360" y2="80"/><line x1="0" y1="120" x2="360" y2="120"/><line x1="0" y1="160" x2="360" y2="160"/><line x1="0" y1="200" x2="360" y2="200"/><line x1="0" y1="240" x2="360" y2="240"/></g>
-            <g id="tank" transform="translate(180 130)">
+          <svg viewBox="0 0 520 300" role="img" aria-label="Robotul văzut de sus, într-o cameră cu obstacole">
+            <rect width="520" height="300" fill="var(--paper)"/>
+            <g stroke="#cfd7d3" stroke-width="1"><line x1="40" y1="0" x2="40" y2="300"/><line x1="80" y1="0" x2="80" y2="300"/><line x1="120" y1="0" x2="120" y2="300"/><line x1="160" y1="0" x2="160" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="240" y1="0" x2="240" y2="300"/><line x1="280" y1="0" x2="280" y2="300"/><line x1="320" y1="0" x2="320" y2="300"/><line x1="360" y1="0" x2="360" y2="300"/><line x1="400" y1="0" x2="400" y2="300"/><line x1="440" y1="0" x2="440" y2="300"/><line x1="480" y1="0" x2="480" y2="300"/><line x1="0" y1="40" x2="520" y2="40"/><line x1="0" y1="80" x2="520" y2="80"/><line x1="0" y1="120" x2="520" y2="120"/><line x1="0" y1="160" x2="520" y2="160"/><line x1="0" y1="200" x2="520" y2="200"/><line x1="0" y1="240" x2="520" y2="240"/><line x1="0" y1="280" x2="520" y2="280"/></g>
+            <g id="arena-obs" opacity="0">
+              <rect x="1" y="1" width="518" height="298" fill="none" stroke="var(--o-ink)" stroke-width="3"/>
+              <g id="trap-g">
+                <rect x="190" y="40" width="90" height="100" rx="6" fill="#c9a27a" fill-opacity=".55" stroke="#8a6a48" stroke-width="2" stroke-dasharray="6 4"/>
+                <path d="M196 50 l78 0 M196 62 l78 0 M196 74 l78 0 M196 86 l78 0 M196 98 l78 0 M196 110 l78 0 M196 122 l78 0" stroke="#8a6a48" stroke-width="1" opacity=".6"/>
+                <text x="235" y="156" text-anchor="middle" font-family="Lexend, sans-serif" font-size="11" fill="var(--o-ink)">covor gros: ochii nu-l văd</text>
+              </g>
+              <g fill="#b9704a" stroke="var(--o-ink)" stroke-width="2">
+                <rect x="360" y="30" width="80" height="60" rx="4"/>
+                <rect x="110" y="200" width="90" height="62" rx="4"/>
+                <rect x="400" y="190" width="64" height="76" rx="4"/>
+              </g>
+              <g font-family="Lexend, sans-serif" font-size="11" fill="#ffffff" text-anchor="middle"><text x="400" y="64">cutie</text><text x="155" y="235">pantof</text><text x="432" y="232">scaun</text></g>
+            </g>
+            <g id="beam" opacity="0"><line id="beam-line" x1="0" y1="0" x2="0" y2="0" stroke="var(--o-orange)" stroke-width="3" stroke-dasharray="5 5"/><circle id="beam-dot" cx="0" cy="0" r="5" fill="var(--o-orange)"/></g>
+            <g id="tank" transform="translate(260 150)">
               <rect x="-36" y="-32" width="12" height="22" rx="3" fill="var(--o-rubber)"/><line class="tread-l" x1="-30" y1="-30" x2="-30" y2="-12" stroke="#9aa3a0" stroke-width="8" stroke-dasharray="2 4"/><rect x="-36" y="10" width="12" height="22" rx="3" fill="var(--o-rubber)"/><line class="tread-l" x1="-30" y1="12" x2="-30" y2="30" stroke="#9aa3a0" stroke-width="8" stroke-dasharray="2 4"/><rect x="24" y="-32" width="12" height="22" rx="3" fill="var(--o-rubber)"/><line class="tread-r" x1="30" y1="-30" x2="30" y2="-12" stroke="#9aa3a0" stroke-width="8" stroke-dasharray="2 4"/><rect x="24" y="10" width="12" height="22" rx="3" fill="var(--o-rubber)"/><line class="tread-r" x1="30" y1="12" x2="30" y2="30" stroke="#9aa3a0" stroke-width="8" stroke-dasharray="2 4"/>
               <g id="turbo-fx" opacity="0" stroke="var(--o-orange)" stroke-width="3" stroke-linecap="round"><line x1="-14" y1="44" x2="-14" y2="64"/><line x1="0" y1="44" x2="0" y2="72"/><line x1="14" y1="44" x2="14" y2="64"/></g>
               <rect x="-24" y="-36" width="48" height="72" rx="8" fill="var(--o-acrylic)" stroke="var(--o-ink)" stroke-width="2"/>
               <rect x="-14" y="-6" width="28" height="22" rx="2" fill="var(--o-pcb-black)"/>
+              <circle id="tank-led" cx="0" cy="22" r="4" fill="#4b5250"/>
               <rect x="-14" y="-40" width="28" height="8" rx="2" fill="var(--o-pcb-blue)"/>
               <circle cx="-7" cy="-42" r="4" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="1.5"/><circle cx="7" cy="-42" r="4" fill="var(--o-metal)" stroke="var(--o-ink)" stroke-width="1.5"/>
               <path d="M0 -58 l-6 8 h12 Z" fill="var(--o-orange)"/>
             </g>
           </svg>
         </div>
-        <div class="btns" role="group" aria-label="Comenzi pentru robot">
-          <button type="button" class="pbtn" data-move="fwd" aria-pressed="false">Înainte</button>
-          <button type="button" class="pbtn" data-move="back" aria-pressed="false">Înapoi</button>
-          <button type="button" class="pbtn" data-move="curveL" aria-pressed="false">Curbă la stânga</button>
-          <button type="button" class="pbtn" data-move="spinR" aria-pressed="false">Pe loc, la dreapta</button>
-          <button type="button" class="pbtn" data-move="stop" aria-pressed="true">Stop</button>
+        <div id="manual-ctl">
+          <div class="btns" role="group" aria-label="Comenzi pentru robot">
+            <button type="button" class="pbtn" data-move="fwd" aria-pressed="false">Înainte</button>
+            <button type="button" class="pbtn" data-move="back" aria-pressed="false">Înapoi</button>
+            <button type="button" class="pbtn" data-move="curveL" aria-pressed="false">Curbă la stânga</button>
+            <button type="button" class="pbtn" data-move="spinR" aria-pressed="false">Pe loc, la dreapta</button>
+            <button type="button" class="pbtn" data-move="stop" aria-pressed="true">Stop</button>
+            <button type="button" class="pbtn turbo" id="btn-turbo" aria-pressed="false">Turbo 4×4: oprit (60 %)</button>
+          </div>
         </div>
-        <div class="btns"><button type="button" class="pbtn turbo" id="btn-turbo" aria-pressed="false">Turbo 4×4: oprit (60 %)</button></div>
+        <div class="auto-read" id="auto-read" hidden>
+          <span class="pill-state" id="auto-state">merge înainte</span>
+          <span id="auto-eyes">Ochii văd: —</span>
+          <button type="button" class="pbtn" id="btn-restart">Ia-o de la capăt</button>
+        </div>
         <p class="readout" id="tank-read" aria-live="polite">Toate roțile stau → robotul stă pe loc. Săgeata portocalie arată fața.</p>
-        <p class="note-turbo"><b>4×4 e mereu pornit:</b> la robotul nostru toate cele 4 roți au motor tot timpul (tracțiune integrală permanentă).
-          <b>Turbo</b> înseamnă doar că motoarele primesc tot curentul (100 %). În robotul adevărat programul pornește limitat la <b>60 %</b>,
-          ca să nu ardă siguranța și să nu treacă motoarele de 6 V. Cât turbo îi dăm (de exemplu 80 % pentru 2 secunde) hotărâm după Misiunea 8, când știm cât trag motoarele.</p>
+        <div class="mode-notes">
+          <p class="note-turbo" data-note="manual"><b>4×4 e mereu pornit:</b> la robotul nostru toate cele 4 roți au motor tot timpul (tracțiune integrală permanentă).
+            <b>Turbo</b> înseamnă doar că motoarele primesc tot curentul (100 %). În robotul adevărat programul pornește limitat la <b>60 %</b>,
+            ca să nu ardă siguranța și să nu treacă motoarele de 6 V. Cât turbo îi dăm hotărâm după Misiunea 8.</p>
+          <p class="note-turbo" data-note="avoid" hidden><b>Ocolirea, pas cu pas:</b> merge înainte la 60 % și măsoară distanța de vreo 20 de ori pe secundă.
+            Sub <b>20 cm</b>: se oprește, dă puțin înapoi, se învârte pe loc până vede drum liber (peste 40 cm), apoi merge mai departe.
+            Atenție: ochii văd doar lucruri înalte. Un covor gros sau un prag îl pot bloca, iar în regimul ăsta robotul nu știe să iasă singur.</p>
+          <p class="note-turbo" data-note="unstuck" hidden><b>Burn out (deblocarea):</b> dacă robotul „merge înainte”, dar distanța văzută nu se schimbă timp de 1,5 secunde,
+            înseamnă că roțile se învârt degeaba. Atunci dă o <b>smucitură scurtă înapoi la 100 %</b> (o jumătate de secundă), se întoarce și pleacă.
+            După <b>3 încercări</b> nereușite se oprește și aprinde LED-ul roșu: așteaptă ajutor, ca să nu ardă siguranța sau motoarele.
+            Durata și puterea reală a smuciturii le stabilim după Misiunea 8, când știm cât trag motoarele.
+            (La mașini, „burnout” înseamnă roți care patinează pe loc; la robotul nostru e numele smuciturii care îl scoate din blocaj.)</p>
+        </div>
       </div>
 
       <div class="demo">
@@ -728,6 +837,50 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
         <h3 id="meter-title">Tensiune (câți volți are bateria)</h3>
         <ol id="meter-steps"></ol>
         <p class="note">Pe multimetrul tău (DT-182) semnele pot fi așezate altfel pe rotiță. Caută simbolul, nu locul din desen.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-ws">
+    <div class="sec-head">
+      <p class="eyebrow">Întâi digital, apoi real</p>
+      <h2 id="h-ws">Atelierul virtual: exersează legăturile</h2>
+      <p class="lead">Leagă firele pe ecran înainte să le legi pe robot. Greșelile de aici nu ard nimic, iar simulatorul îți spune exact ce e greșit:
+        scurtcircuit, siguranță ocolită, condensator invers, semnal de 5 V pe pinul creierului.</p>
+    </div>
+    <div class="ws">
+      <div class="btns" role="group" aria-label="Nivelul">
+        <button type="button" class="pbtn" data-lvl="1" aria-pressed="true">1 · Primul circuit</button>
+        <button type="button" class="pbtn" data-lvl="2" aria-pressed="false">2 · Mușchiul și motorul</button>
+        <button type="button" class="pbtn" data-lvl="3" aria-pressed="false">3 · Creierul și ochii</button>
+      </div>
+      <p class="ws-goal"><b>Ce ai de făcut:</b> <span id="ws-goal"></span></p>
+      <div class="ws-tools">
+        <span>Culoarea firului:</span>
+        <div class="btns" role="group" aria-label="Culoarea firului">
+          <button type="button" class="pbtn sw-red" data-wire="red" aria-pressed="true">roșu (plus)</button>
+          <button type="button" class="pbtn sw-black" data-wire="black" aria-pressed="false">negru (minus)</button>
+          <button type="button" class="pbtn sw-orange" data-wire="orange" aria-pressed="false">portocaliu (5 V)</button>
+          <button type="button" class="pbtn sw-yellow" data-wire="yellow" aria-pressed="false">galben (semnal)</button>
+        </div>
+      </div>
+      <div class="stage scroll"><svg id="ws-svg" viewBox="0 0 960 440" role="application" aria-label="Masa de lucru virtuală: apasă pe două borne ca să le legi cu un fir"></svg></div>
+      <div class="btns">
+        <button type="button" class="pbtn" id="ws-power" aria-pressed="false">Întrerupătorul: O (oprit)</button>
+        <button type="button" class="pbtn" id="ws-check">Verifică legăturile</button>
+        <button type="button" class="pbtn" id="ws-clear">Scoate firele</button>
+        <button type="button" class="pbtn" id="ws-solve">Arată soluția</button>
+      </div>
+      <div class="ws-out" id="ws-out" aria-live="polite"></div>
+      <div class="ws-more">
+        <p><b>Vrei mai mult?</b> Două simulatoare gratuite, în browser, pentru pasul următor:</p>
+        <ul>
+          <li><b>Tinkercad Circuits</b> (<a href="https://www.tinkercad.com/circuits" target="_blank" rel="noopener">tinkercad.com/circuits</a>):
+            breadboard, motoare, un driver de motoare, senzor ultrasonic și un multimetru virtual. Folosește Arduino, nu ESP32,
+            dar e foarte bun pentru exersat cablajul pe breadboard și măsurătorile.</li>
+          <li><b>Wokwi</b> (<a href="https://wokwi.com" target="_blank" rel="noopener">wokwi.com</a>): simulează chiar placa noastră, ESP32, și senzorul HC-SR04.
+            Acolo putem rula programul robotului înainte să ajungă placa.</li>
+        </ul>
       </div>
     </div>
   </section>
@@ -1557,7 +1710,7 @@ const MISSIONS = [
     time: "2–3 sesiuni",
     state: "later",
     stateText: "după misiunile 7 și 8",
-    pre: "O scriu fir cu fir după ce știm curentul motoarelor (misiunea 8) și avem creierul în mână. Mai jos e harta ei, în 7 părți.",
+    pre: "O scriu fir cu fir după ce știm curentul motoarelor (misiunea 8) și avem creierul în mână. Mai jos e harta ei, în 7 părți. Înainte, fă nivelurile 1–3 din **Atelierul virtual**: sunt exact legăturile de la 9a, 9b, 9c și 9e.",
     need: [
       "tot robotul",
       "fire Dupont",
@@ -1606,6 +1759,7 @@ const MISSIONS = [
       "**Toate împreună**, tot cu roțile în aer: înainte, înapoi, pe loc la stânga și la dreapta.",
       "**Primul drum:** pe podea, viteză mică, cineva stă lângă întrerupător. Robotul merge și se oprește în fața unei cutii.",
       "**Ocolirea:** robotul vede cutia, se oprește, se întoarce pe loc și merge mai departe.",
+      "**Burn out (deblocarea):** pe un covor gros sau lângă un prag, robotul observă că s-a blocat, dă o smucitură scurtă înapoi și iese. După 3 încercări se oprește și cere ajutor.",
     ],
     see: "Robotul se plimbă singur prin cameră și ocolește obstacolele.",
     stop: "Robotul o ia razna, se lovește tare sau ceva se încălzește: întrerupătorul pe O.",
@@ -1774,10 +1928,10 @@ const MISSIONS = [
     '<span>5 benzi: ' + r.bands.join(' · ') + ' · 4 benzi (dacă ai bej): ' + r.four + '</span></div></div>').join('');
 
   // ---- map legend: jump to a part card, clearing the filter first ----
-  document.querySelectorAll('#legend a').forEach((a) => a.addEventListener('click', (ev) => {
+  document.querySelectorAll('a[data-part]').forEach((a) => a.addEventListener('click', (ev) => {
     ev.preventDefault();
     if (filter !== 'all') { filter = 'all'; renderChips(); renderParts(); }
-    const el = document.getElementById('part-' + a.dataset.part);
+    const el = document.getElementById('part-' + a.getAttribute('data-part'));
     if (el) {
       el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
       el.style.outline = '3px solid var(--accent)';
@@ -1850,139 +2004,238 @@ const MISSIONS = [
     });
   }
 
-  // ---- tank steering demo ----
+  // ---- driving demo: manual (+turbo), autonomous avoid, autonomous + unstuck ----
   const tank = $("tank");
   const read = $("tank-read");
-  const treads = {
-    l: document.querySelectorAll(".tread-l"),
-    r: document.querySelectorAll(".tread-r"),
-  };
-  const ARENA = { w: 360, h: 260 };
+  const treads = { l: document.querySelectorAll(".tread-l"), r: document.querySelectorAll(".tread-r") };
+  const ARENA = { w: 520, h: 300 };
+  const OBST = [{ x: 360, y: 30, w: 80, h: 60 }, { x: 110, y: 200, w: 90, h: 62 }, { x: 400, y: 190, w: 64, h: 76 }];
+  const TRAP = { x: 190, y: 40, w: 90, h: 100 };
+  const R_BODY = 36; // collision radius, px
+  const CM_PER_PX = 0.36; // the drawn robot is ~26 cm long
+  const STOP_CM = 20;
+  const CLEAR_CM = 40;
   const MOVES = {
-    fwd: {
-      l: 1,
-      r: 1,
-      text: "Stânga: înainte · dreapta: înainte → merge drept înainte.",
-    },
-    back: {
-      l: -1,
-      r: -1,
-      text: "Stânga: înapoi · dreapta: înapoi → merge drept înapoi.",
-    },
-    curveL: {
-      l: 0.35,
-      r: 1,
-      text: "Stânga: încet · dreapta: repede → ia o curbă la stânga.",
-    },
-    spinR: {
-      l: 1,
-      r: -1,
-      text: "Stânga: înainte · dreapta: înapoi → se învârte pe loc, spre dreapta.",
-    },
+    fwd: { l: 1, r: 1, text: "Stânga: înainte · dreapta: înainte → merge drept înainte." },
+    back: { l: -1, r: -1, text: "Stânga: înapoi · dreapta: înapoi → merge drept înapoi." },
+    curveL: { l: 0.35, r: 1, text: "Stânga: încet · dreapta: repede → ia o curbă la stânga." },
+    spinR: { l: 1, r: -1, text: "Stânga: înainte · dreapta: înapoi → se învârte pe loc, spre dreapta." },
     stop: { l: 0, r: 0, text: "Toate roțile stau → robotul stă pe loc." },
   };
-  const sim = {
-    x: ARENA.w / 2,
-    y: ARENA.h / 2,
-    th: 0,
-    l: 0,
-    r: 0,
-    offL: 0,
-    offR: 0,
-    last: 0,
-    raf: 0,
-  };
   const SPEED = 110; // px per second at 100 % PWM
-  const TRACK = 64; // distance between left and right wheels, px
+  const TRACK = 64;
   const NORMAL = 0.6; // the real firmware limit (MAX_SPEED_PERCENT)
-  let power = NORMAL;
+  const sim = { x: 260, y: 150, th: 0, l: 0, r: 0, offL: 0, offR: 0, last: 0, raf: 0, power: NORMAL };
+  let drive = "manual";
   let current = MOVES.stop;
+  const ai = { state: "fwd", t: 0, dir: 1, tries: 0, chkT: 0, chkDist: 0, okT: 0, dist: 999 };
   const turboBtn = $("btn-turbo");
   const turboFx = $("turbo-fx");
+  const obsG = $("arena-obs");
+  const beam = $("beam");
+  const beamLine = $("beam-line");
+  const beamDot = $("beam-dot");
+  const led = $("tank-led");
+  const autoRead = $("auto-read");
+  const autoState = $("auto-state");
+  const autoEyes = $("auto-eyes");
+  const manualCtl = $("manual-ctl");
 
-  function describe() {
-    if (!read) return;
-    const pct = Math.round(power * 100);
-    const moving = sim.l || sim.r;
-    read.textContent = current.text + (moving
-      ? (power === 1 ? " Putere: 100 % · TURBO, toate cele 4 motoare la maxim." : " Putere: " + pct + " % · normal.")
-      : "");
-    if (turboFx) turboFx.setAttribute("opacity", power === 1 && moving ? "1" : "0");
+  function inRect(px, py, r) { return px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h; }
+  function hits(x, y) {
+    if (drive === "manual") return false;
+    if (x < R_BODY || y < R_BODY || x > ARENA.w - R_BODY || y > ARENA.h - R_BODY) return true;
+    return OBST.some((o) => {
+      const cx = Math.max(o.x, Math.min(x, o.x + o.w));
+      const cy = Math.max(o.y, Math.min(y, o.y + o.h));
+      return (x - cx) * (x - cx) + (y - cy) * (y - cy) < R_BODY * R_BODY;
+    });
   }
-
+  function sonar() {
+    const fx = sim.x + 44 * Math.sin(sim.th);
+    const fy = sim.y - 44 * Math.cos(sim.th);
+    let d = 0;
+    for (; d < 640; d += 2) {
+      const px = fx + d * Math.sin(sim.th);
+      const py = fy - d * Math.cos(sim.th);
+      if (px <= 0 || py <= 0 || px >= ARENA.w || py >= ARENA.h || OBST.some((o) => inRect(px, py, o))) break;
+    }
+    return { cm: d * CM_PER_PX, fx, fy, hx: fx + d * Math.sin(sim.th), hy: fy - d * Math.cos(sim.th) };
+  }
   function step(dt) {
-    const vl = sim.l * SPEED * power;
-    const vr = sim.r * SPEED * power;
+    const vl = sim.l * SPEED * sim.power;
+    const vr = sim.r * SPEED * sim.power;
     const v = (vl + vr) / 2;
     sim.th += ((vl - vr) / TRACK) * dt;
-    sim.x += v * Math.sin(sim.th) * dt;
-    sim.y -= v * Math.cos(sim.th) * dt;
-    if (sim.x < -30) sim.x = ARENA.w + 30;
-    if (sim.x > ARENA.w + 30) sim.x = -30;
-    if (sim.y < -30) sim.y = ARENA.h + 30;
-    if (sim.y > ARENA.h + 30) sim.y = -30;
+    let nx = sim.x + v * Math.sin(sim.th) * dt;
+    let ny = sim.y - v * Math.cos(sim.th) * dt;
+    const stuck = drive !== "manual" && inRect(sim.x, sim.y, TRAP) && sim.power < 0.9;
+    if (!stuck && !hits(nx, ny)) { sim.x = nx; sim.y = ny; }
+    if (drive === "manual") {
+      if (sim.x < -30) sim.x = ARENA.w + 30;
+      if (sim.x > ARENA.w + 30) sim.x = -30;
+      if (sim.y < -30) sim.y = ARENA.h + 30;
+      if (sim.y > ARENA.h + 30) sim.y = -30;
+    }
     sim.offL += vl * dt;
     sim.offR += vr * dt;
   }
-  function draw() {
+  function setWheels(l, r, power) { sim.l = l; sim.r = r; sim.power = power; }
+  const STATES = {
+    fwd: "merge înainte",
+    stop: "obstacol! stop",
+    back: "dă puțin înapoi",
+    turn: "se întoarce pe loc",
+    stuck: "blocat: roțile se învârt degeaba",
+    burst: "burn out: smucitură înapoi 100 %",
+    giveup: "oprit: așteaptă ajutor",
+  };
+  function go(state) { ai.state = state; ai.t = 0; }
+  function brain(dt) {
+    const s = sonar();
+    ai.dist = s.cm;
+    ai.t += dt;
+    if (ai.state === "fwd") {
+      setWheels(1, 1, NORMAL);
+      if (s.cm < STOP_CM) { go("stop"); }
+      ai.chkT += dt;
+      ai.okT += dt;
+      if (ai.chkT >= 1.5) {
+        const moved = Math.abs(s.cm - ai.chkDist) > 1.5;
+        ai.chkT = 0;
+        ai.chkDist = s.cm;
+        if (!moved) {
+          if (drive === "unstuck") go("stuck"); else ai.avoidStuck = true;
+        } else {
+          ai.avoidStuck = false;
+          if (ai.okT > 5) ai.tries = 0;
+        }
+      }
+    } else if (ai.state === "stop") {
+      setWheels(0, 0, NORMAL);
+      if (ai.t > 0.35) go("back");
+    } else if (ai.state === "back") {
+      setWheels(-1, -1, NORMAL);
+      if (ai.t > 0.5) { ai.dir = Math.random() < 0.5 ? 1 : -1; go("turn"); }
+    } else if (ai.state === "turn") {
+      setWheels(ai.dir, -ai.dir, NORMAL);
+      if ((ai.t > 0.4 && s.cm > CLEAR_CM) || ai.t > 3) { ai.chkT = 0; ai.chkDist = s.cm; go("fwd"); }
+    } else if (ai.state === "stuck") {
+      setWheels(1, 1, NORMAL);
+      if (ai.t > 0.6) { ai.tries += 1; ai.okT = 0; go(ai.tries > 3 ? "giveup" : "burst"); }
+    } else if (ai.state === "burst") {
+      setWheels(-1, -1, 1);
+      if (ai.t > 0.5) { ai.dir = Math.random() < 0.5 ? 1 : -1; go("turn"); }
+    } else if (ai.state === "giveup") {
+      setWheels(0, 0, NORMAL);
+    }
+    return s;
+  }
+  function describeManual() {
+    if (!read) return;
+    const moving = sim.l || sim.r;
+    read.textContent = current.text + (moving
+      ? (sim.power === 1 ? " Putere: 100 % · TURBO, toate cele 4 motoare la maxim." : " Putere: " + Math.round(sim.power * 100) + " % · normal.")
+      : "");
+  }
+  function describeAuto() {
+    const avoidStuck = drive === "avoid" && ai.state === "fwd" && ai.avoidStuck;
+    autoState.textContent = avoidStuck ? STATES.stuck : STATES[ai.state];
+    autoState.dataset.state = avoidStuck ? "stuck" : ai.state;
+    autoEyes.textContent = "Ochii văd: " + (ai.dist > 90 ? "peste 90" : Math.round(ai.dist)) + " cm";
+    const t = {
+      fwd: "Drum liber: merge înainte la 60 %.",
+      stop: "Ochii văd ceva la mai puțin de " + STOP_CM + " cm. Creierul oprește motoarele.",
+      back: "Dă înapoi puțin, ca să aibă loc să se întoarcă.",
+      turn: "Se învârte pe loc până vede drum liber, peste " + CLEAR_CM + " cm.",
+      stuck: "Motoarele merg, dar distanța nu se schimbă de 1,5 secunde: robotul e blocat.",
+      burst: "Încercarea " + ai.tries + " din 3: smucitură scurtă înapoi, la putere maximă.",
+      giveup: "Trei încercări nereușite. Se oprește și aprinde LED-ul roșu: are nevoie de ajutor.",
+    }[ai.state];
+    read.textContent = avoidStuck
+      ? "Blocat în covor: roțile se învârt degeaba, iar ochii nu văd covorul. Fără deblocare, robotul rămâne aici. Încearcă regimul „Autonom + Burn out”."
+      : t;
+    if (led) led.setAttribute("fill", ai.state === "giveup" ? "#e5483a" : ai.state === "burst" || ai.state === "stuck" ? "#f0a500" : "#3fbf73");
+  }
+  function draw(s) {
     if (!tank) return;
-    tank.setAttribute(
-      "transform",
-      "translate(" +
-        sim.x.toFixed(1) +
-        " " +
-        sim.y.toFixed(1) +
-        ") rotate(" +
-        ((sim.th * 180) / Math.PI).toFixed(1) +
-        ")",
-    );
-    treads.l.forEach((t) =>
-      t.setAttribute("stroke-dashoffset", (sim.offL % 12).toFixed(1)),
-    );
-    treads.r.forEach((t) =>
-      t.setAttribute("stroke-dashoffset", (sim.offR % 12).toFixed(1)),
-    );
+    tank.setAttribute("transform", "translate(" + sim.x.toFixed(1) + " " + sim.y.toFixed(1) + ") rotate(" + ((sim.th * 180) / Math.PI).toFixed(1) + ")");
+    treads.l.forEach((t) => t.setAttribute("stroke-dashoffset", (sim.offL % 12).toFixed(1)));
+    treads.r.forEach((t) => t.setAttribute("stroke-dashoffset", (sim.offR % 12).toFixed(1)));
+    if (turboFx) turboFx.setAttribute("opacity", sim.power === 1 && (sim.l || sim.r) ? "1" : "0");
+    if (s && beam) {
+      beam.setAttribute("opacity", "1");
+      beamLine.setAttribute("x1", s.fx.toFixed(1)); beamLine.setAttribute("y1", s.fy.toFixed(1));
+      beamLine.setAttribute("x2", s.hx.toFixed(1)); beamLine.setAttribute("y2", s.hy.toFixed(1));
+      beamDot.setAttribute("cx", s.hx.toFixed(1)); beamDot.setAttribute("cy", s.hy.toFixed(1));
+    } else if (beam) {
+      beam.setAttribute("opacity", "0");
+    }
   }
   function loop(ts) {
     if (!sim.last) sim.last = ts;
     const dt = Math.min(0.05, (ts - sim.last) / 1000);
     sim.last = ts;
+    let s = null;
+    if (drive !== "manual") { s = brain(dt); describeAuto(); }
     step(dt);
-    draw();
-    if (sim.l || sim.r) sim.raf = requestAnimationFrame(loop);
-    else sim.raf = 0;
+    draw(s);
+    const keep = drive !== "manual" ? ai.state !== "giveup" : (sim.l || sim.r);
+    if (keep) sim.raf = requestAnimationFrame(loop); else { sim.raf = 0; if (drive !== "manual") describeAuto(); }
   }
-  document.querySelectorAll("[data-move]").forEach((b) =>
-    b.addEventListener("click", () => {
-      const m = MOVES[b.dataset.move];
-      if (!m) return;
-      sim.l = m.l;
-      sim.r = m.r;
-      current = m;
-      describe();
-      document
-        .querySelectorAll("[data-move]")
-        .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-      if (reduce) {
-        for (let i = 0; i < 40; i += 1) step(0.025); // one second of motion, drawn once
-        draw();
-        return;
-      }
-      if (!sim.raf && (sim.l || sim.r)) {
-        sim.last = 0;
-        sim.raf = requestAnimationFrame(loop);
-      }
-    }),
-  );
+  function run() { if (!sim.raf) { sim.last = 0; sim.raf = requestAnimationFrame(loop); } }
+  function stopLoop() { if (sim.raf) cancelAnimationFrame(sim.raf); sim.raf = 0; }
+
+  function startAuto() {
+    stopLoop();
+    sim.x = 80; sim.y = 90; sim.th = Math.PI / 2; sim.offL = 0; sim.offR = 0;
+    Object.assign(ai, { state: "fwd", t: 0, dir: 1, tries: 0, chkT: 0, chkDist: 999, okT: 0, dist: 999, avoidStuck: false });
+    run();
+  }
+  function setDrive(mode) {
+    drive = mode;
+    document.querySelectorAll("[data-drive]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.drive === mode)));
+    document.querySelectorAll("[data-note]").forEach((n) => { n.hidden = n.dataset.note !== mode; });
+    const auto = mode !== "manual";
+    if (obsG) obsG.setAttribute("opacity", auto ? "1" : "0");
+    if (manualCtl) manualCtl.hidden = auto;
+    if (autoRead) autoRead.hidden = !auto;
+    if (led) led.setAttribute("fill", "#4b5250");
+    if (auto) { startAuto(); return; }
+    stopLoop();
+    setWheels(0, 0, NORMAL);
+    current = MOVES.stop;
+    sim.x = 260; sim.y = 150; sim.th = 0;
+    if (turboBtn) { turboBtn.setAttribute("aria-pressed", "false"); turboBtn.textContent = "Turbo 4×4: oprit (60 %)"; }
+    document.querySelectorAll("[data-move]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.move === "stop")));
+    describeManual();
+    draw(null);
+  }
+  document.querySelectorAll("[data-drive]").forEach((b) => b.addEventListener("click", () => setDrive(b.dataset.drive)));
+  const restart = $("btn-restart");
+  if (restart) restart.addEventListener("click", () => startAuto());
+
+  document.querySelectorAll("[data-move]").forEach((b) => b.addEventListener("click", () => {
+    const m = MOVES[b.dataset.move];
+    if (!m || drive !== "manual") return;
+    const p = sim.power;
+    setWheels(m.l, m.r, p);
+    current = m;
+    describeManual();
+    document.querySelectorAll("[data-move]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    if (reduce) { for (let i = 0; i < 40; i += 1) step(0.025); draw(null); return; }
+    if (sim.l || sim.r) run();
+  }));
   if (turboBtn) {
     turboBtn.addEventListener("click", () => {
-      power = power === 1 ? NORMAL : 1;
-      turboBtn.setAttribute("aria-pressed", String(power === 1));
-      turboBtn.textContent = power === 1 ? "Turbo 4×4: pornit (100 %)" : "Turbo 4×4: oprit (60 %)";
-      describe();
+      sim.power = sim.power === 1 ? NORMAL : 1;
+      turboBtn.setAttribute("aria-pressed", String(sim.power === 1));
+      turboBtn.textContent = sim.power === 1 ? "Turbo 4×4: pornit (100 %)" : "Turbo 4×4: oprit (60 %)";
+      describeManual();
+      draw(null);
     });
   }
-  draw();
+  draw(null);
 
   // ---- "bat eyes" (ultrasonic) demo ----
   const wall = $("wall");
@@ -2123,6 +2376,812 @@ const MISSIONS = [
   setMode("volt");
 })();
 </script>
+
+<script>
+(function () {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.getElementById("ws-svg");
+  if (!svg) return;
+  const $ = (id) => document.getElementById(id);
+  const out = $("ws-out");
+  const powerBtn = $("ws-power");
+  const reduce =
+    window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---- component drawings: each returns {svg, pins:{name:[dx,dy,label]}} ----
+  const C = {
+    bat: {
+      w: 150,
+      h: 110,
+      label: "Baterii 6 × AA",
+      sub: "7,2 V",
+      fill: "#232624",
+      ink: "#ffffff",
+      pins: { plus: [150, 30, "+"], minus: [150, 80, "−"] },
+    },
+    fuse: {
+      w: 120,
+      h: 44,
+      label: "Siguranța",
+      sub: "3 A",
+      fill: "#fbfbf7",
+      ink: "#1b201e",
+      pins: { a: [0, 22, ""], b: [120, 22, ""] },
+    },
+    sw: {
+      w: 120,
+      h: 56,
+      label: "Întrerupător",
+      sub: "",
+      fill: "#fbfbf7",
+      ink: "#1b201e",
+      pins: { a: [0, 28, ""], b: [120, 28, ""] },
+    },
+    mot: {
+      w: 120,
+      h: 70,
+      label: "Motor",
+      sub: "",
+      fill: "#f2c230",
+      ink: "#1b201e",
+      pins: { m1: [0, 22, ""], m2: [0, 50, ""] },
+    },
+    l298: {
+      w: 160,
+      h: 150,
+      label: "Mușchi L298N",
+      sub: "",
+      fill: "#c8322b",
+      ink: "#ffffff",
+      pins: {
+        vm: [0, 30, "12V (VM)"],
+        gnd: [0, 75, "GND"],
+        v5: [0, 120, "5V"],
+        out1: [160, 45, "OUT1"],
+        out2: [160, 95, "OUT2"],
+      },
+    },
+    cap: {
+      w: 90,
+      h: 70,
+      label: "1000 µF",
+      sub: "dungă = −",
+      fill: "#232624",
+      ink: "#ffffff",
+      pins: { plus: [25, 0, "+"], minus: [65, 0, "−"] },
+    },
+    esp: {
+      w: 170,
+      h: 120,
+      label: "Creierul ESP32",
+      sub: "",
+      fill: "#232624",
+      ink: "#ffffff",
+      pins: {
+        vin: [0, 30, "VIN"],
+        gnd: [0, 85, "GND"],
+        g23: [170, 30, "GPIO23"],
+        g35: [170, 85, "GPIO35"],
+      },
+    },
+    hc: {
+      w: 170,
+      h: 120,
+      label: "Ochii HC-SR04",
+      sub: "",
+      fill: "#1e5fae",
+      ink: "#ffffff",
+      pins: {
+        vcc: [0, 25, "VCC"],
+        trig: [0, 52, "TRIG"],
+        echo: [0, 79, "ECHO"],
+        gnd: [0, 106, "GND"],
+      },
+    },
+    r22: {
+      w: 110,
+      h: 36,
+      label: "2,2 kΩ",
+      sub: "",
+      fill: "#4f8fd6",
+      ink: "#ffffff",
+      pins: { a: [0, 18, ""], b: [110, 18, ""] },
+    },
+    r33: {
+      w: 110,
+      h: 36,
+      label: "3,3 kΩ",
+      sub: "",
+      fill: "#4f8fd6",
+      ink: "#ffffff",
+      pins: { a: [0, 18, ""], b: [110, 18, ""] },
+    },
+  };
+
+  // ---- levels ----
+  const LEVELS = [
+    {
+      id: 1,
+      title: "Primul circuit",
+      goal: "Leagă bateriile → siguranța → întrerupătorul → motorul → înapoi la minusul bateriilor. Apoi pornește întrerupătorul.",
+      parts: [
+        ["bat", "bat", 30, 150],
+        ["fuse", "fuse", 260, 80],
+        ["sw", "sw", 470, 80],
+        ["mot", "mot", 700, 200],
+      ],
+      solution: [
+        ["bat.plus", "fuse.a", "red"],
+        ["fuse.b", "sw.a", "red"],
+        ["sw.b", "mot.m1", "red"],
+        ["mot.m2", "bat.minus", "black"],
+      ],
+      hasSwitch: true,
+    },
+    {
+      id: 2,
+      title: "Mușchiul și motorul",
+      goal: "Plusul trece prin siguranță și întrerupător la 12V (VM). Minusul merge la GND. Condensatorul între VM și GND, cu dunga la minus. Motorul la OUT1 și OUT2.",
+      parts: [
+        ["bat", "bat", 20, 230],
+        ["fuse", "fuse", 220, 60],
+        ["sw", "sw", 400, 60],
+        ["l298", "mus", 600, 150],
+        ["cap", "cap", 360, 300],
+        ["mot", "mot", 820, 160],
+      ],
+      solution: [
+        ["bat.plus", "fuse.a", "red"],
+        ["fuse.b", "sw.a", "red"],
+        ["sw.b", "mus.vm", "red"],
+        ["bat.minus", "mus.gnd", "black"],
+        ["cap.plus", "mus.vm", "red"],
+        ["cap.minus", "mus.gnd", "black"],
+        ["mus.out1", "mot.m1", "red"],
+        ["mus.out2", "mot.m2", "black"],
+      ],
+      hasSwitch: true,
+    },
+    {
+      id: 3,
+      title: "Creierul și ochii",
+      goal: "5V de la mușchi la VIN (creier) și VCC (ochi). GND la toți trei. TRIG la GPIO23. ECHO trece prin 2,2 kΩ la GPIO35, iar de acolo 3,3 kΩ merge la GND.",
+      parts: [
+        ["l298", "mus", 20, 120],
+        ["esp", "esp", 330, 40],
+        ["hc", "hc", 760, 120],
+        ["r22", "r1", 560, 300],
+        ["r33", "r2", 330, 330],
+      ],
+      solution: [
+        ["mus.v5", "esp.vin", "orange"],
+        ["mus.v5", "hc.vcc", "orange"],
+        ["mus.gnd", "esp.gnd", "black"],
+        ["mus.gnd", "hc.gnd", "black"],
+        ["esp.g23", "hc.trig", "yellow"],
+        ["hc.echo", "r1.b", "yellow"],
+        ["r1.a", "esp.g35", "yellow"],
+        ["esp.g35", "r2.b", "yellow"],
+        ["r2.a", "mus.gnd", "black"],
+      ],
+      hasSwitch: false,
+    },
+  ];
+  const COLORS = {
+    red: "#d33a2c",
+    black: "#1e1e1e",
+    orange: "#e8792b",
+    yellow: "#d9a400",
+  };
+
+  let level = LEVELS[0];
+  let wires = [];
+  let selected = null;
+  let color = "red";
+  let switchOn = false;
+  const pos = {}; // terminal id -> [x, y]
+
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    Object.keys(attrs || {}).forEach((k) => e.setAttribute(k, attrs[k]));
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  function render() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    el("rect", { width: 960, height: 440, fill: "var(--paper)" }, svg);
+    const gWires = el("g", {}, svg);
+    const gParts = el("g", {}, svg);
+    Object.keys(pos).forEach((k) => delete pos[k]);
+    level.parts.forEach(([type, id, x, y]) => {
+      const d = C[type];
+      const g = el(
+        "g",
+        { transform: "translate(" + x + " " + y + ")" },
+        gParts,
+      );
+      el(
+        "rect",
+        {
+          width: d.w,
+          height: d.h,
+          rx: 10,
+          fill: d.fill,
+          stroke: "#1b201e",
+          "stroke-width": 2,
+        },
+        g,
+      );
+      const t = el(
+        "text",
+        {
+          x: d.w / 2,
+          y: d.h / 2 - (d.sub ? 2 : -5),
+          "text-anchor": "middle",
+          "font-family": "Lexend, sans-serif",
+          "font-size": 14,
+          "font-weight": 700,
+          fill: d.ink,
+        },
+        g,
+      );
+      t.textContent = d.label;
+      if (d.sub) {
+        const s = el(
+          "text",
+          {
+            x: d.w / 2,
+            y: d.h / 2 + 16,
+            "text-anchor": "middle",
+            "font-family": "Lexend, sans-serif",
+            "font-size": 12,
+            fill: d.ink,
+          },
+          g,
+        );
+        s.textContent = d.sub;
+      }
+      if (type === "sw") {
+        const st = el(
+          "text",
+          {
+            x: d.w / 2,
+            y: d.h - 8,
+            "text-anchor": "middle",
+            "font-family": "JetBrains Mono, monospace",
+            "font-size": 12,
+            "font-weight": 700,
+            fill: switchOn ? "#1d7748" : "#bf3428",
+          },
+          g,
+        );
+        st.textContent = switchOn ? "I (pornit)" : "O (oprit)";
+      }
+      if (type === "mot") {
+        const sp = el(
+          "g",
+          {
+            class: "ws-spin" + (level.running ? " on" : ""),
+            transform: "translate(" + (d.w - 24) + " " + d.h / 2 + ")",
+          },
+          g,
+        );
+        el(
+          "circle",
+          { r: 12, fill: "none", stroke: "#1b201e", "stroke-width": 2 },
+          sp,
+        );
+        el(
+          "path",
+          { d: "M-12 0 H12 M0 -12 V12", stroke: "#1b201e", "stroke-width": 2 },
+          sp,
+        );
+      }
+      Object.keys(d.pins).forEach((p) => {
+        const [dx, dy, lbl] = d.pins[p];
+        const tid = id + "." + p;
+        pos[tid] = [x + dx, y + dy];
+        if (lbl) {
+          const left = dx === 0;
+          const top = dy === 0;
+          const lt = el(
+            "text",
+            {
+              x: top ? dx : dx + (left ? 14 : -14),
+              y: top ? dy + 22 : dy + 4,
+              "text-anchor": top ? "middle" : left ? "start" : "end",
+              "font-family": "JetBrains Mono, monospace",
+              "font-size": 11,
+              "font-weight": 700,
+              fill: d.ink,
+            },
+            g,
+          );
+          lt.textContent = lbl;
+        }
+      });
+    });
+    wires.forEach((w, i) => {
+      const [x1, y1] = pos[w.a];
+      const [x2, y2] = pos[w.b];
+      const mx = (x1 + x2) / 2;
+      const my = Math.max(y1, y2) + 30;
+      const dPath =
+        "M" + x1 + " " + y1 + " Q" + mx + " " + my + " " + x2 + " " + y2;
+      el(
+        "path",
+        {
+          d: dPath,
+          fill: "none",
+          stroke: COLORS[w.c],
+          "stroke-width": 5,
+          "stroke-linecap": "round",
+          class: "ws-wire" + (level.running && w.c !== "yellow" ? " live" : ""),
+        },
+        gWires,
+      );
+      const hit = el(
+        "path",
+        {
+          d: dPath,
+          fill: "none",
+          stroke: "transparent",
+          "stroke-width": 16,
+          class: "ws-hit",
+          tabindex: 0,
+          role: "button",
+          "aria-label": "Șterge firul " + w.a + " – " + w.b,
+        },
+        gWires,
+      );
+      const del = () => {
+        wires.splice(i, 1);
+        stopRun();
+        render();
+        say("Fir șters.", "");
+      };
+      hit.addEventListener("click", del);
+      hit.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          del();
+        }
+      });
+    });
+    Object.keys(pos).forEach((tid) => {
+      const [x, y] = pos[tid];
+      const g = el(
+        "g",
+        {
+          class: "ws-term" + (selected === tid ? " sel" : ""),
+          tabindex: 0,
+          role: "button",
+          "aria-label": "Borna " + tid,
+        },
+        gParts,
+      );
+      el("circle", { cx: x, cy: y, r: 16, fill: "transparent" }, g);
+      el(
+        "circle",
+        {
+          cx: x,
+          cy: y,
+          r: 8,
+          fill: "#bcc3c6",
+          stroke: "#1b201e",
+          "stroke-width": 2,
+          class: "dot",
+        },
+        g,
+      );
+      g.addEventListener("click", () => tap(tid));
+      g.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          tap(tid);
+        }
+      });
+    });
+  }
+
+  function say(html, kind) {
+    out.className = "ws-out " + (kind || "");
+    out.innerHTML = html;
+  }
+
+  function tap(tid) {
+    if (!selected) {
+      selected = tid;
+      render();
+      say(
+        "Ai ales <b>" +
+          nice(tid) +
+          "</b>. Acum apasă pe borna unde merge firul.",
+        "",
+      );
+      return;
+    }
+    if (selected === tid) {
+      selected = null;
+      render();
+      say("Ai renunțat.", "");
+      return;
+    }
+    const a = selected;
+    const b = tid;
+    selected = null;
+    if (
+      !wires.some((w) => (w.a === a && w.b === b) || (w.a === b && w.b === a))
+    )
+      wires.push({ a, b, c: color });
+    stopRun();
+    render();
+    say(
+      "Fir " +
+        colorName(color) +
+        ": <b>" +
+        nice(a) +
+        "</b> → <b>" +
+        nice(b) +
+        "</b>. Apasă pe un fir ca să-l ștergi.",
+      "",
+    );
+  }
+
+  const NAMES = {
+    "bat.plus": "plus baterii",
+    "bat.minus": "minus baterii",
+    "fuse.a": "siguranță (stânga)",
+    "fuse.b": "siguranță (dreapta)",
+    "sw.a": "întrerupător (stânga)",
+    "sw.b": "întrerupător (dreapta)",
+    "mot.m1": "motor (sus)",
+    "mot.m2": "motor (jos)",
+    "mus.vm": "mușchi 12V (VM)",
+    "mus.gnd": "mușchi GND",
+    "mus.v5": "mușchi 5V",
+    "mus.out1": "mușchi OUT1",
+    "mus.out2": "mușchi OUT2",
+    "cap.plus": "condensator +",
+    "cap.minus": "condensator −",
+    "esp.vin": "creier VIN",
+    "esp.gnd": "creier GND",
+    "esp.g23": "creier GPIO23",
+    "esp.g35": "creier GPIO35",
+    "hc.vcc": "ochi VCC",
+    "hc.trig": "ochi TRIG",
+    "hc.echo": "ochi ECHO",
+    "hc.gnd": "ochi GND",
+    "r1.a": "2,2 kΩ (stânga)",
+    "r1.b": "2,2 kΩ (dreapta)",
+    "r2.a": "3,3 kΩ (stânga)",
+    "r2.b": "3,3 kΩ (dreapta)",
+  };
+  const nice = (t) => NAMES[t] || t;
+  const colorName = (c) =>
+    ({ red: "roșu", black: "negru", orange: "portocaliu", yellow: "galben" })[
+      c
+    ];
+
+  // ---- electrical check: nets = groups of terminals joined by wires (and by closed switch / fuse when asked) ----
+  function nets(opts) {
+    const parent = {};
+    const find = (x) => {
+      while (parent[x] && parent[x] !== x) x = parent[x];
+      return x;
+    };
+    const join = (a, b) => {
+      parent[a] = parent[a] || a;
+      parent[b] = parent[b] || b;
+      const ra = find(a);
+      const rb = find(b);
+      if (ra !== rb) parent[ra] = rb;
+    };
+    Object.keys(pos).forEach((t) => {
+      parent[t] = t;
+    });
+    wires.forEach((w) => join(w.a, w.b));
+    if (opts && opts.through) {
+      if (pos["fuse.a"]) join("fuse.a", "fuse.b");
+      if (pos["sw.a"] && switchOn) join("sw.a", "sw.b");
+    }
+    return find;
+  }
+  function chain(f, start, comps, end, problems) {
+    let cur = f(start);
+    for (const [ca, cb, name] of comps) {
+      let exit;
+      if (f(ca) === cur) exit = cb;
+      else if (f(cb) === cur) exit = ca;
+      else {
+        problems.push(name + " nu e legat(ă) la locul lui în drumul plusului.");
+        return false;
+      }
+      if (f(exit) === cur) {
+        problems.push(
+          name +
+            " are ambele capete pe același fir: curentul trece pe lângă ea, ca și cum n-ar exista.",
+        );
+        return false;
+      }
+      cur = f(exit);
+    }
+    if (f(end) !== cur) {
+      problems.push("Drumul plusului nu ajunge la " + nice(end) + ".");
+      return false;
+    }
+    return true;
+  }
+  function check() {
+    const problems = [];
+    const warnings = [];
+    const f = nets();
+    const fx = nets({ through: true });
+    let short = false;
+    if (pos["bat.plus"] && fx("bat.plus") === fx("bat.minus")) short = true;
+    if (pos["mus.v5"] && f("mus.v5") === f("mus.gnd")) short = true;
+    wires.forEach((w) => {
+      const plusSide = [
+        "bat.plus",
+        "fuse.a",
+        "fuse.b",
+        "sw.a",
+        "sw.b",
+        "mus.vm",
+        "cap.plus",
+        "mus.v5",
+        "esp.vin",
+        "hc.vcc",
+      ];
+      if (
+        w.c === "black" &&
+        (plusSide.includes(w.a) || plusSide.includes(w.b)) &&
+        !(
+          w.a.endsWith("gnd") ||
+          w.b.endsWith("gnd") ||
+          w.a.endsWith("minus") ||
+          w.b.endsWith("minus")
+        )
+      ) {
+        if (
+          !warnings.includes(
+            "Fir negru pe plus: merge electric, dar regula noastră e roșu = plus, negru = minus. Altfel te încurci la verificare.",
+          )
+        ) {
+          warnings.push(
+            "Fir negru pe plus: merge electric, dar regula noastră e roșu = plus, negru = minus. Altfel te încurci la verificare.",
+          );
+        }
+      }
+    });
+    if (level.id === 1) {
+      chain(
+        f,
+        "bat.plus",
+        [
+          ["fuse.a", "fuse.b", "Siguranța"],
+          ["sw.a", "sw.b", "Întrerupătorul"],
+          ["mot.m1", "mot.m2", "Motorul"],
+        ],
+        "bat.minus",
+        problems,
+      );
+    }
+    if (level.id === 2) {
+      chain(
+        f,
+        "bat.plus",
+        [
+          ["fuse.a", "fuse.b", "Siguranța"],
+          ["sw.a", "sw.b", "Întrerupătorul"],
+        ],
+        "mus.vm",
+        problems,
+      );
+      if (f("bat.minus") !== f("mus.gnd"))
+        problems.push("Minusul bateriilor trebuie să ajungă la GND pe mușchi.");
+      if (f("cap.plus") === f("mus.gnd") && f("cap.minus") === f("mus.vm"))
+        problems.push(
+          "Condensatorul e pus invers! Dunga (−) merge la GND. Invers se poate umfla sau sparge.",
+        );
+      else if (f("cap.plus") !== f("mus.vm") || f("cap.minus") !== f("mus.gnd"))
+        problems.push(
+          "Condensatorul merge între 12V (VM) și GND: + la VM, − (dunga) la GND.",
+        );
+      const mo = [f("mot.m1"), f("mot.m2")].sort().join("|");
+      const ou = [f("mus.out1"), f("mus.out2")].sort().join("|");
+      if (mo !== ou)
+        problems.push(
+          "Motorul se leagă la OUT1 și OUT2 ale mușchiului (sensul nu contează aici).",
+        );
+    }
+    if (level.id === 3) {
+      if (f("esp.g35") === f("hc.echo"))
+        problems.push(
+          "PERICOL: ECHO direct pe GPIO35! Ochii trimit 5 V, creierul suportă cel mult 3,6 V. Pinul s-ar arde. ECHO trece prin 2,2 kΩ.",
+        );
+      if (f("mus.v5") === f("esp.g35") || f("mus.v5") === f("esp.g23"))
+        problems.push(
+          "PERICOL: 5 V pe un pin GPIO al creierului. Se arde. Pinii GPIO primesc doar semnale.",
+        );
+      if (f("esp.vin") !== f("mus.v5"))
+        problems.push("Creierul ia curent de la 5V-ul mușchiului: 5V → VIN.");
+      if (f("hc.vcc") !== f("mus.v5"))
+        problems.push("Ochii iau tot 5V de la mușchi: 5V → VCC.");
+      if (f("esp.gnd") !== f("mus.gnd") || f("hc.gnd") !== f("mus.gnd"))
+        problems.push(
+          "GND trebuie să fie comun: mușchi, creier și ochi, toți legați împreună.",
+        );
+      if (f("hc.trig") !== f("esp.g23"))
+        problems.push(
+          "TRIG merge la GPIO23 (creierul îi spune ochilor „trimite un sunet”).",
+        );
+      const r1Echo =
+        f("r1.a") === f("hc.echo")
+          ? "r1.b"
+          : f("r1.b") === f("hc.echo")
+            ? "r1.a"
+            : null;
+      const r2Echo =
+        f("r2.a") === f("hc.echo")
+          ? "r2.b"
+          : f("r2.b") === f("hc.echo")
+            ? "r2.a"
+            : null;
+      if (r2Echo && !r1Echo && f(r2Echo) === f("esp.g35"))
+        problems.push(
+          "Ai inversat rezistențele: așa ajung doar ~2 V la creier și s-ar putea să nu „audă” ecoul. Sus (de la ECHO) vine 2,2 kΩ, jos (spre GND) 3,3 kΩ.",
+        );
+      else if (!r1Echo || f(r1Echo) !== f("esp.g35"))
+        problems.push(
+          "ECHO → 2,2 kΩ → GPIO35. Rezistența de 2,2 kΩ stă între ECHO și GPIO35.",
+        );
+      else {
+        const r2toGnd =
+          (f("r2.a") === f("esp.g35") && f("r2.b") === f("mus.gnd")) ||
+          (f("r2.b") === f("esp.g35") && f("r2.a") === f("mus.gnd"));
+        if (!r2toGnd)
+          problems.push(
+            "De la GPIO35, rezistența de 3,3 kΩ merge la GND. Așa cele două fac împreună un „împărțitor” care coboară 5 V la 3 V.",
+          );
+      }
+    }
+    return { short, problems, warnings };
+  }
+
+  function stopRun() {
+    level.running = false;
+  }
+  function verdict(run) {
+    const r = check();
+    const warn = r.warnings.map((w) => '<li class="w">' + w + "</li>").join("");
+    if (r.short) {
+      stopRun();
+      render();
+      say(
+        "<b>Scurtcircuit!</b> Plusul ajunge direct la minus, fără să treacă prin nimic care să folosească curentul. În realitate firele se încing în câteva secunde, iar siguranța de 3 A se arde. Caută firul care leagă direct plusul de minus.",
+        "bad",
+      );
+      return;
+    }
+    if (r.problems.length) {
+      stopRun();
+      render();
+      say(
+        "<b>" +
+          (run ? "Nu pornește." : "Mai e de lucru.") +
+          "</b><ul>" +
+          r.problems.map((p) => "<li>" + p + "</li>").join("") +
+          warn +
+          "</ul>",
+        "bad",
+      );
+      return;
+    }
+    if (level.hasSwitch && run && !switchOn) {
+      say(
+        "<b>Totul e legat corect.</b> Acum pune întrerupătorul pe I.<ul>" +
+          warn +
+          "</ul>",
+        "ok",
+      );
+      return;
+    }
+    if (run || !level.hasSwitch) {
+      level.running = true;
+      render();
+      const msg = {
+        1: "Motorul se învârte! Curentul pleacă din plus, trece prin siguranță și întrerupător, învârte motorul și se întoarce la minus.",
+        2: "Motorul se învârte, comandat de mușchi. Exact așa vei lega pe robot fiecare parte (Misiunea 9a–9b).",
+        3: "Creierul și ochii au curent, iar ecoul ajunge la creier ca 3 V, sigur pentru pin. Ochii măsoară: 37 cm.",
+      }[level.id];
+      say(
+        "<b>Corect!</b> " + msg + (warn ? "<ul>" + warn + "</ul>" : ""),
+        "ok",
+      );
+      return;
+    }
+    say(
+      "<b>Totul e legat corect.</b> Pune întrerupătorul pe I ca să vezi ce se întâmplă." +
+        (warn ? "<ul>" + warn + "</ul>" : ""),
+      "ok",
+    );
+  }
+
+  function setLevel(n) {
+    level = LEVELS.find((l) => l.id === n) || LEVELS[0];
+    wires = [];
+    selected = null;
+    switchOn = false;
+    level.running = false;
+    $("ws-goal").textContent = level.goal;
+    document
+      .querySelectorAll("[data-lvl]")
+      .forEach((b) =>
+        b.setAttribute("aria-pressed", String(Number(b.dataset.lvl) === n)),
+      );
+    powerBtn.hidden = !level.hasSwitch;
+    powerBtn.textContent = "Întrerupătorul: O (oprit)";
+    powerBtn.setAttribute("aria-pressed", "false");
+    render();
+    say(
+      "Apasă pe o bornă (cerculețele gri), apoi pe borna unde vrei să ajungă firul.",
+      "",
+    );
+  }
+
+  document
+    .querySelectorAll("[data-lvl]")
+    .forEach((b) =>
+      b.addEventListener("click", () => setLevel(Number(b.dataset.lvl))),
+    );
+  document.querySelectorAll("[data-wire]").forEach((b) =>
+    b.addEventListener("click", () => {
+      color = b.dataset.wire;
+      document
+        .querySelectorAll("[data-wire]")
+        .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    }),
+  );
+  $("ws-check").addEventListener("click", () => verdict(false));
+  $("ws-clear").addEventListener("click", () => {
+    wires = [];
+    selected = null;
+    stopRun();
+    render();
+    say("Am scos toate firele.", "");
+  });
+  $("ws-solve").addEventListener("click", () => {
+    wires = level.solution.map(([a, b, c]) => ({ a, b, c }));
+    selected = null;
+    stopRun();
+    render();
+    say(
+      "Asta e soluția. Uită-te pe ea, apoi apasă „Scoate firele” și încearcă singur.",
+      "",
+    );
+  });
+  powerBtn.addEventListener("click", () => {
+    switchOn = !switchOn;
+    powerBtn.textContent = switchOn
+      ? "Întrerupătorul: I (pornit)"
+      : "Întrerupătorul: O (oprit)";
+    powerBtn.setAttribute("aria-pressed", String(switchOn));
+    if (!switchOn) {
+      stopRun();
+      render();
+      say("Întrerupătorul e pe O: nu curge curent.", "");
+      return;
+    }
+    verdict(true);
+  });
+  if (reduce) svg.classList.add("still");
+  setLevel(1);
+})();
+</script>
+
 
 </body>
 </html>
